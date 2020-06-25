@@ -1,0 +1,12 @@
+# Ignore
+build/*
+lib/*
+notes
+
+
+# Empty for now
+data/*
+docs/*
+examples/*
+extern/*
+
