@@ -1,6 +1,15 @@
 # Ignore
+bin/*
 build/*
+CMakeFiles/*
+extern/googletest/lib/*
+extern/gtest/*
 lib/*
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+clean
+clean_build
 notes
 
 
