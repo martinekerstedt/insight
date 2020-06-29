@@ -42,7 +42,7 @@ target_include_directories(${PROJECT_NAME}
 
 
 # Make gtest
-ADD_SUBDIRECTORY(extern/gtest)
+ADD_SUBDIRECTORY(extern/googletest)
 
 #set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 #set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
