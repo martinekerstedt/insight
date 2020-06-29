@@ -2,8 +2,8 @@
 bin/*
 build/*
 CMakeFiles/*
-extern/googletest/lib/*
 extern/gtest/*
+!extern/gtest/CMakeLists.txt
 lib/*
 test/bin/*
 CMakeCache.txt

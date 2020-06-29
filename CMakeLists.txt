@@ -42,25 +42,126 @@ target_include_directories(${PROJECT_NAME}
 
 
 # Make gtest
-#ADD_SUBDIRECTORY(extern/gtest)
+ADD_SUBDIRECTORY(extern/gtest)
 
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
-set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
+#set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+#set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+#set(BUILD_GMOCK ON CACHE BOOL "" FORCE)
 
-ADD_SUBDIRECTORY(extern/googletest)
+#ADD_SUBDIRECTORY(extern/googletest)
 
-set_target_properties(gtest gtest_main gmock gmock_main
-    PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/lib"
-    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/bin"
-)
+#set_target_properties(gtest gtest_main gmock gmock_main
+#    PROPERTIES
+#    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/lib"
+#    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/lib"
+#    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/extern/googletest/bin"
+#)
+
+
+#include(FetchContent)
+
+#FetchContent_Declare(gtest_git
+#    GIT_REPOSITORY https://github.com/google/googletest.git
+#    GIT_TAG master
+#)
+
+#FetchContent_GetProperties(gtest_git)
+
+#message(STATUS "gtest_git_POPULATED: ${gtest_git_POPULATED}\n")
+
+#if(NOT gtest_git_POPULATED)
+#    FetchContent_Populate(gtest_git)
+#    
+#    message(STATUS "gtest_git_SOURCE_DIR: ${gtest_git_SOURCE_DIR}\n")
+#    message(STATUS "gtest_git_BINARY_DIR: ${gtest_git_BINARY_DIR}\n")
+#    
+#    add_subdirectory(${gtest_git_SOURCE_DIR} ${gtest_git_BINARY_DIR})
+#endif()
+
+#FetchContent_MakeAvailable(gtest_git)
+
+
+
 
 
 
 # Make test executable
 ADD_SUBDIRECTORY(test)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
