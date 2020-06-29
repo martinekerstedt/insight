@@ -2,7 +2,7 @@
 bin/*
 build/*
 CMakeFiles/*
-extern/gtest/*
+extern/googletest/*
 !extern/gtest/CMakeLists.txt
 lib/*
 test/bin/*
