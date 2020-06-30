@@ -20,6 +20,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 # Define target
 add_executable(${PROJECT_NAME}
     src/main.cpp
+    src/squaretest.cpp
 )
 
 
@@ -31,12 +32,3 @@ target_link_libraries(${PROJECT_NAME}
         gtest
 )
 
-
-##################################
-# Just make the test runnable with
-#   $ make test
-
-#enable_testing()
-#add_test(NAME    ${PROJECT_NAME} 
-#         COMMAND ${PROJECT_NAME}
-#)

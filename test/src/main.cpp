@@ -1,18 +1,12 @@
-#include <insight.h>
 #include <iostream>
+#include "gtest/gtest.h"
 
-int main(int argc, char* argv[])
-{
-    if (argc < 2) {
-        std::cout << "No arguments given." << std::endl;
-        return 0;
-    }    
+GTEST_API_ int main(int argc, char **argv) {
 
-    Insight insight;
-    
-    int val = std::stoi(argv[1]);
-    
-    std::cout << "Square of " << val << " is " << insight.square(val) << std::endl;
+    std::cout << "Running main() from " << __FILE__ << std::endl;
 
-    return 0;
+    testing::InitGoogleTest(&argc, argv);
+
+    return RUN_ALL_TESTS();
+
 }
