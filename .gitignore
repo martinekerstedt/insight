@@ -20,7 +20,6 @@ nn
 
 
 # Empty for now
-data/*
 docs/*
 examples/*
 
