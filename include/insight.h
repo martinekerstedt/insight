@@ -11,7 +11,6 @@ public:
     int square(int val);
     
 private:
-    NeuralNet m_neuralNet;
 
 };
 

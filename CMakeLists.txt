@@ -18,10 +18,15 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Define output directories
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set(TOP_LEVEL_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "TOP_LEVEL_DIR" FORCE)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${TOP_LEVEL_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TOP_LEVEL_DIR}/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TOP_LEVEL_DIR}/bin)
+
+
+#set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
+#set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
 
 
 # Define targets
@@ -38,12 +43,12 @@ add_library(${PROJECT_NAME}
 # Include directories
 target_include_directories(${PROJECT_NAME}
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
+        ${TOP_LEVEL_DIR}/include
 )
 
 target_include_directories(${PROJECT_NAME}
     PRIVATE
-        ${PROJECT_SOURCE_DIR}/src
+        ${TOP_LEVEL_DIR}/src
 )
 
 
@@ -56,6 +61,10 @@ ADD_SUBDIRECTORY(extern/googletest)
 # Make test executable
 ADD_SUBDIRECTORY(test)
 
+
+
+# Make example executable
+ADD_SUBDIRECTORY(examples)
 
 
 

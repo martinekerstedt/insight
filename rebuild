@@ -1,0 +1,11 @@
+#!/bin/bash
+
+
+
+./clean
+
+
+
+./build_all
+
+

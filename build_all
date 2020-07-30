@@ -1,0 +1,52 @@
+#!/bin/bash
+
+echo " "
+echo " "
+
+
+
+# Default build mode
+DEBUG_BUILD=1
+
+#read -t 3 -p "`echo -e '(Debug Build): Press Enter to switch to (Release Build)\n>'`"
+
+#if [[ $? == 0 ]]; then
+#    echo -e "\n\n*** Switched to (Release Build)\n"
+#    DEBUG_BUILD=0
+#else
+#    echo -e "\n\n*** (Debug Build)\n"
+#fi
+
+echo -e "(Debug Build): Edit ./build_all to change build mode.\n\n"
+
+
+
+if [[ DEBUG_BUILD ]]; then
+    cmake -DCMAKE_BUILD_TYPE=Debug -S . -B ./build-debug
+else
+    cmake -DCMAKE_BUILD_TYPE=Release -S . -B ./build-release
+fi
+
+# Check if cmd failed, if res != 0
+if [[ $? -ne 0 ]]; then
+    echo -e "\n*** cmake failed!\n"
+    exit 1 
+fi 
+
+
+
+make -C ./build
+
+if [[ DEBUG_BUILD ]]; then
+    make -C ./build-debug
+else
+    make -C ./build-release
+fi
+
+# Check if cmd failed, if res != 0
+if [[ $? -ne 0 ]]; then
+    echo -e "\n*** make failed!\n"
+    exit 1 
+fi 
+
+

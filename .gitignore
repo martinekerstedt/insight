@@ -1,6 +1,7 @@
 # Ignore
 bin/*
-build/*
+build-debug/*
+build-release/*
 CMakeFiles/*
 extern/googletest/*
 !extern/gtest/CMakeLists.txt
@@ -13,6 +14,9 @@ clean
 clean_build
 CMakeLists.txt.user
 notes
+nn
+.vscode/*
+*.autosave
 
 
 # Empty for now

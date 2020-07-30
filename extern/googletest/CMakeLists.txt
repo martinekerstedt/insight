@@ -7,7 +7,7 @@ include(FetchContent)
 
 
 # Edit FetchContent settings to keep googletest repo in extern/googletest
-set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "" FORCE)
+set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_LIST_DIR}" CACHE STRING "" FORCE)
 set(FETCHCONTENT_QUIET OFF CACHE BOOL "" FORCE)
 
 
@@ -40,8 +40,8 @@ FetchContent_MakeAvailable(googletest)
 set_target_properties(
     gtest gtest_main
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
 )
 
 if (BUILD_GMOCK)
@@ -49,8 +49,8 @@ if (BUILD_GMOCK)
     set_target_properties(
         gmock gmock_main
         PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/lib"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
     )
 
 endif()
