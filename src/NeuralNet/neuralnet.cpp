@@ -1,5 +1,4 @@
 ﻿#include <NeuralNet/neuralnet.h>
-#include <NeuralNet/neuron.h>
 #include <stdexcept>
 #include <cmath>
 #include <random>
