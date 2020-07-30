@@ -78,10 +78,10 @@ NeuralNet::NeuralNet(std::vector<size_t> size_vec) :
 
             for (size_t k = 0; k < currNeuron->size; ++k)
             {
-                currNeuron->weights.push_back(d(gen)
-                                              * std::sqrt(2 / (real)currNeuron->size));
+//                currNeuron->weights.push_back(d(gen)
+//                                              * std::sqrt(2 / (real)currNeuron->size));
 
-//                 currNeuron->weights.push_back(d(gen));
+                 currNeuron->weights.push_back(d(gen));
 
 //                currNeuron->weights.push_back(-1.0
 //                                              + (2 * (((real)rand()) / ((real)RAND_MAX))));
@@ -149,7 +149,6 @@ void NeuralNet::calcError(real_vec target)
     }
 
     for (size_t i = 0; i < target.size(); ++i) {
-//        m_error[i] = layers.back()[i].output - target[i];
         m_error[i] = costFunc(layers.back()[i].output, target[i]);
     }
 }
@@ -325,11 +324,6 @@ void NeuralNet::backpropergate(real_vec input, real_vec error)
             // Update current neurons bias
             // dC/db = s'(z) * dC/da
             // deltaBias = (-1) * dC/db
-//            currNeuron->bias -= learningRate
-//                                * activationFunctionDerivative(layers[i].activation,
-//                                                               currNeuron->weightedSum)
-//                                * currNeuron->gradient;
-
             currNeuron->bias -= activationFunctionDerivative(layers[i].activation,
                                                              currNeuron->weightedSum)
                     * currNeuron->gradient;
@@ -342,12 +336,6 @@ void NeuralNet::backpropergate(real_vec input, real_vec error)
                 {
                     // dC/d(w_k1k2)^L = input[k1] * s'((z_k2)^L) * dC/d(a_k2)^L
                     // deltaWeight = (-1) * dC/d(w_k1k2)^L
-//                    currNeuron->weights[k] -= learningRate
-//                            * input[k]
-//                            * activationFunctionDerivative(layers[i].activation,
-//                                                           currNeuron->weightedSum)
-//                            * currNeuron->gradient;
-
                     currNeuron->weights[k] -= input[k]
                             * activationFunctionDerivative(layers[i].activation,
                                                            currNeuron->weightedSum)
@@ -361,12 +349,6 @@ void NeuralNet::backpropergate(real_vec input, real_vec error)
 
                     // dC/d(w_k1k2)^L = (a_k1)^L-1 * s'((z_k2)^L) * dC/d(a_k2)^L
                     // deltaWeight = (-1) * dC/d(w_k1k2)^L
-//                    currNeuron->weights[k] -= learningRate
-//                            * leftNeuron->output
-//                            * activationFunctionDerivative(layers[i].activation,
-//                                                           currNeuron->weightedSum)
-//                            * currNeuron->gradient;
-
                     currNeuron->weights[k] -= leftNeuron->output
                             * activationFunctionDerivative(layers[i].activation,
                                                            currNeuron->weightedSum)
@@ -390,7 +372,7 @@ real NeuralNet::costFunc(real output, real target)
 
     } else if (costFunction == CostFunction::CROSS_ENTROPY) {
 
-        // Assume that target is either 1 or 0
+        // Assumes that target is either 1 or 0
         // And that output is between 0 and 1
         if ((output > 1.0) || (output < 0.0)) {
             THROW_ERROR("Invalid value of output: "
@@ -436,7 +418,6 @@ real NeuralNet::activationFunction(Layer::Activation func, real x)
         if (x >= 0.0) {
             return x;
         } else {
-//            return 0.0;
             if (x < -15.0) {
                 return -0.2;
             } else {
@@ -481,7 +462,6 @@ real NeuralNet::activationFunctionDerivative(Layer::Activation func, real x)
         if (x >= 0) {
             return 1.0;
         } else {
-//            return 0;
             if (x < -15.0) {
                 return 0;
             } else {
