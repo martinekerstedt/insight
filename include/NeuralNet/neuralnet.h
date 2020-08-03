@@ -3,144 +3,151 @@
 
 #include <Common/types.h>
 
-//
-// TODO
-//
-// DataSet type, should make things simpler and more easy to understand
-//
-// Parameters
-//   Batch size
-//   Number of epochs
-//   Toggle soft max on the output
-//   Learning rate, actually a parameter to the cost functions, scale cost function
-//   Sampeling/printing rate, different for training and testing
-//   Design to make it very simple to write custom cost/activ/opt/init-functions
-//     Cost function
-//     Activation function, per layer
-//     Optimizer funciton/Backprop function
-//     Initialization function
-//
-// Functions
-//   Propergate
-//   Start training, will return when done
-//   Stop training
-//   Get weights and biases, return a string or vectors
-//   Load weights and biases
-//   Get current output
-//   Get current error vector
-//   Get full access to internal state, the "insight" in Insight
-//
-// Data type to replace real in most places, probably only need -+100 or +-1000 range
-//   (float is 32bit, +-1000 would be 12bit)
-//
-
 struct Neuron
 {
-    Neuron(size_t size) : size(size) {}
-    const size_t size;
-    real_vec weights;
+    Neuron(size_t size)
+    {
+        weights.resize(size, 0);
+    }
+
+    real_vec weights;   
     real bias = 0;
     real output = 0;
     real gradient = 0;
     real weightedSum = 0;
+//    real weights[size];
+
+    size_t size()
+    {
+        return weights.size();
+    }
+
+    real& operator [](int i)
+    {
+        return weights[i];
+    }
+
+    real operator [](int i) const
+    {
+        return weights[i];
+    }
 };
 
-struct Layer
+typedef std::vector<Neuron> Layer;
+
+class NeuralNet;
+
+struct InitializationFunction
 {
-    enum class Type
+    enum Type
     {
-        INPUT,
-        HIDDEN,
-        OUTPUT,
-        INPUT_OUTPUT
+        ALL_ZERO = 1,
+        RANDOM
     };
 
-    enum class Activation
+    // Custom function has type = 0
+    unsigned int type;
+    void (*ptr)(NeuralNet*);
+};
+
+struct CostFunction
+{
+    enum Type
     {
-        RELU,
+        DIFFERENCE = 1,
+        CROSS_ENTROPY,
+        SQUARE_DIFFERENCE
+    };
+
+    // Custom function has type = 0
+    unsigned int type;
+    real (*ptr)(real, real, NeuralNet*);
+};
+
+struct ActivationFunction
+{
+    enum Type
+    {
+        RELU = 1,
         SIGMOID,
         TANH
     };
 
-    Layer(size_t size,
-          Layer::Type type,
-          Layer::Activation activation = Activation::RELU,
-          bool softMax = false) :
-        size(size),
-        type(type),
-        activation(activation),
-        softMax(softMax)
+    // Custom function has type = 0
+    unsigned int type;
+    real (*ptr)(real, NeuralNet*);
+    real (*derivPtr)(real, NeuralNet*);
+};
+
+struct OptimizeFunction
+{
+    enum Type
     {
+        TEST = 1,
+        BACKPROP
+    };
 
-    }
-
-    Neuron& operator [](int i)
-    {
-        return neurons[i];
-    }
-
-    Neuron operator [](int i) const
-    {
-        return neurons[i];
-    }
-
-    const size_t size;
-    const Type type;
-    Activation activation;
-    bool softMax;
-
-    std::vector<Neuron> neurons;
-
+    // Custom function has type = 0
+    unsigned int type;
+    void (*ptr)(real_vec, real_vec, NeuralNet*);
 };
 
 class NeuralNet
 {
 public:
-    enum class CostFunction
-    {
-        DIFFERENCE,
-        CROSS_ENTROPY,
-        SQUARE_DIFFERENCE
-    };
-
     NeuralNet(std::vector<size_t> size);
 
     void propergate(real_vec input);
-    void calcError(real_vec target);
-    real train(real_matrix input, real_matrix target);
-    
-    std::vector<Layer> layers;
-    std::vector<size_t> size_vec();
-
-    unsigned int batchSize;
-    unsigned int nEpochs;
-    unsigned int printInterval;
-    bool softMaxOutput;
-    CostFunction costFunction;
-    real learningRate;
-    real momentum;
-
-    void setHiddenActivation(Layer::Activation activation);
-    void setOutputActivation(Layer::Activation activation);
-
-private:
+    real train(real_matrix input, real_matrix target);    
     void backpropergate(real_vec input, real_vec error);
-    void printState(real_vec input, real_vec target, size_t batchIdx);
-
-    real costFunc(real output, real target);
-
-    real activationFunction(Layer::Activation func, real x);
-    real activationFunctionDerivative(Layer::Activation func, real x);
-
     void softMax(real_vec& vec);
     void softMax(Layer& vec);
+    void printState(real_vec input, real_vec target, real_vec error, size_t batchIdx);
 
-    void updateLearningRate(real cost);
+    std::vector<size_t> sizeVec();
+    std::vector<Layer>& layers();
+    unsigned int batchSize();
+    void setBatchSize(unsigned int batchSize);
+    unsigned int nEpochs();
+    void setNEpochs(unsigned int nEpochs);
+    unsigned int printInterval();
+    void setPrintInterval(unsigned int printInterval);
+    void softMax();
+    void setSoftMax(bool softMax);
+    real learningRate();
+    void setLearningRate(real learningRate);
 
-    std::vector<size_t> m_size_vec;
-    real_vec m_error;
+    void setInitializationFunction(InitializationFunction::Type init_func);
+    void setInitializationFunction(void (*initFunc)(NeuralNet*));
 
-    const real m_eulerConstant;
+    void setCostFunction(CostFunction::Type cost_func);
+    void setCostFunction(real (*costFunc)(real, real, NeuralNet*));
+
+    real activationFunction(unsigned int layerIdx, real x);
+    real activationFunctionDerivate(unsigned int layerIdx, real x);
+    void setHiddenLayerActivationFunction(ActivationFunction::Type activ_func);
+    void setHiddenLayerActivationFunction(real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*));
+    void setOutputLayerActivationFunction(ActivationFunction::Type activ_func);
+    void setOutputLayerActivationFunction(real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*));
+    void setActivationFunction(unsigned int layerIdx, ActivationFunction::Type activ_func);
+    void setActivationFunction(unsigned int layerIdx, real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*));
+
+    void setOptimizeFunction(OptimizeFunction::Type opt_func);
+    void setOptimizeFunction(void (*optFunc)(real_vec, real_vec, NeuralNet*));
+
+private:
+    std::vector<size_t> m_sizeVec;
+    std::vector<Layer> m_layers;
+    unsigned int m_batchSize;
+    unsigned int m_nEpochs;
+    unsigned int m_printInterval;
+    bool m_softMax;
+    real m_learningRate;
+
+    InitializationFunction m_initFunc;
+    CostFunction m_costFunc;
+    std::vector<ActivationFunction> m_layerActivFunc;
+    OptimizeFunction m_optFunc;
 
 };
 

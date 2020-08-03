@@ -8,6 +8,7 @@ extern/googletest/*
 lib/*
 test/bin/*
 examples/bin/*
+examples/src/main.cpp
 CMakeCache.txt
 cmake_install.cmake
 Makefile
@@ -22,5 +23,5 @@ nn
 
 # Empty for now
 docs/*
-examples/*
+
 

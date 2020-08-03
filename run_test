@@ -17,7 +17,7 @@ echo " "
 
 
 # ./test/bin/test_insight
-./examples/bin/example_insight
+./examples/bin/example_mnist
 
 # Check if cmd failed, if res != 0
 if [[ $? -ne 0 ]]; then
