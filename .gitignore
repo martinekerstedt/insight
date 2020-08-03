@@ -12,8 +12,6 @@ examples/src/main.cpp
 CMakeCache.txt
 cmake_install.cmake
 Makefile
-clean
-clean_build
 CMakeLists.txt.user
 notes
 nn
