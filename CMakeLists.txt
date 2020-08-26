@@ -35,6 +35,8 @@ add_library(${PROJECT_NAME}
     SHARED
         src/insight.cpp
         src/NeuralNet/neuralnet.cpp
+        src/NeuralNet/matrix.cpp
+        src/NeuralNet/vector.cpp
 )
 
 

@@ -87,6 +87,11 @@ NeuralNet::NeuralNet(std::vector<size_t> sizeVec) :
     m_initFunc.ptr(this);
 }
 
+//void NeuralNet::testNamedParam(NamedParameter<void>*)
+//{
+
+//}
+
 void NeuralNet::propergate(real_vec input)
 {
     if (input.size() != m_sizeVec[0]) {
@@ -239,86 +244,86 @@ real NeuralNet::train(real_matrix input, real_matrix target)
     return 0;
 }
 
-void NeuralNet::backpropergate(real_vec input, real_vec error)
-{
-    // Loop the weights back to front
-    // Loop layers
-    for (int i = (int)m_layers.size() - 1; i >= 0; --i) {
+//void NeuralNet::backpropergate(real_vec input, real_vec error)
+//{
+//    // Loop the weights back to front
+//    // Loop layers
+//    for (int i = (int)m_layers.size() - 1; i >= 0; --i) {
 
-        // Loop neurons
-        for (size_t j = 0; j < m_layers[i].size(); ++j) {
-            // Current neuron
-            Neuron* currNeuron = &m_layers[i][j];
+//        // Loop neurons
+//        for (size_t j = 0; j < m_layers[i].size(); ++j) {
+//            // Current neuron
+//            Neuron* currNeuron = &m_layers[i][j];
 
-            // Calc dC/da aka gradient of neuron a
-            // Different for output layer            
-            if ((size_t)i == (m_layers.size() - 1)) {
+//            // Calc dC/da aka gradient of neuron a
+//            // Different for output layer
+//            if ((size_t)i == (m_layers.size() - 1)) {
 
-                // dC/da = 2 * (a_k - t_k)
-                currNeuron->gradient = error[j]*m_learningRate; // Put learning rate here?
-                // Also, change learningRate according to how much the cost diviates from the mean cost over the last samples
-                // In other words, increase learningRate when encountering outliers
+//                // dC/da = 2 * (a_k - t_k)
+//                currNeuron->gradient = error[j]*m_learningRate; // Put learning rate here?
+//                // Also, change learningRate according to how much the cost diviates from the mean cost over the last samples
+//                // In other words, increase learningRate when encountering outliers
 
-            } else {
+//            } else {
 
-                currNeuron->gradient = 0;                
+//                currNeuron->gradient = 0;
 
-                // Loop neurons of the layer to the right of the current layer
-                // dC/da_k1 = sum of (w_k1k2)^L+1 * s'((z_k2)^L+1) * (g_k2)^L+1 for all k2
-                for (size_t k = 0; k < m_layers[i + 1].size(); ++k) {
+//                // Loop neurons of the layer to the right of the current layer
+//                // dC/da_k1 = sum of (w_k1k2)^L+1 * s'((z_k2)^L+1) * (g_k2)^L+1 for all k2
+//                for (size_t k = 0; k < m_layers[i + 1].size(); ++k) {
 
-                    Neuron* rightNeuron = &m_layers[i + 1][k];
+//                    Neuron* rightNeuron = &m_layers[i + 1][k];
 
-                    currNeuron->gradient += rightNeuron->weights[j]
-                            * m_layerActivFunc[i].derivPtr(rightNeuron->weightedSum, this)
-                            * rightNeuron->gradient;
-                }
-            }
-        }
-    }
+//                    currNeuron->gradient += rightNeuron->weights[j]
+//                            * m_layerActivFunc[i].derivPtr(rightNeuron->weightedSum, this)
+//                            * rightNeuron->gradient;
+//                }
+//            }
+//        }
+//    }
 
-    // Update weights
-    // Loop layers back to front
-    for (int i = (int)m_layers.size() - 1; i >= 0; --i) {
+//    // Update weights
+//    // Loop layers back to front
+//    for (int i = (int)m_layers.size() - 1; i >= 0; --i) {
 
-        // Loop neurons
-        for (size_t j = 0; j < m_layers[i].size(); ++j) {
+//        // Loop neurons
+//        for (size_t j = 0; j < m_layers[i].size(); ++j) {
 
-            // Current neuron
-            Neuron* currNeuron = &m_layers[i][j];
+//            // Current neuron
+//            Neuron* currNeuron = &m_layers[i][j];
 
-            // Update current neurons bias
-            // dC/db = s'(z) * dC/da
-            // deltaBias = (-1) * dC/db
-            currNeuron->bias -= m_layerActivFunc[i].derivPtr(currNeuron->weightedSum, this)
-                    * currNeuron->gradient;
+//            // Update current neurons bias
+//            // dC/db = s'(z) * dC/da
+//            // deltaBias = (-1) * dC/db
+//            currNeuron->bias -= m_layerActivFunc[i].derivPtr(currNeuron->weightedSum, this)
+//                    * currNeuron->gradient;
 
-            // Loop weights
-            for (size_t k = 0; k < currNeuron->size(); ++k) {
+//            // Loop weights
+//            for (size_t k = 0; k < currNeuron->size(); ++k) {
 
-                // Weights in the first layer are connected to the input vector and NOT a neuron layer
-                if (i == 0) {
+//                // Weights in the first layer are connected to the input vector and NOT a neuron layer
+//                if (i == 0) {
 
-                    // dC/d(w_k1k2)^L = input[k1] * s'((z_k2)^L) * dC/d(a_k2)^L
-                    // deltaWeight = (-1) * dC/d(w_k1k2)^L
-                    currNeuron->weights[k] -= input[k]
-                            * m_layerActivFunc[i].derivPtr(currNeuron->weightedSum, this)
-                            * currNeuron->gradient;
-                } else {
+//                    // dC/d(w_k1k2)^L = input[k1] * s'((z_k2)^L) * dC/d(a_k2)^L
+//                    // deltaWeight = (-1) * dC/d(w_k1k2)^L
+//                    currNeuron->weights[k] -= input[k]
+//                            * m_layerActivFunc[i].derivPtr(currNeuron->weightedSum, this)
+//                            * currNeuron->gradient;
+//                } else {
 
-                    // Neuron in the layer to the left that the weight is connected to
-                    Neuron* leftNeuron = &m_layers[i - 1][k];
+//                    // Neuron in the layer to the left that the weight is connected to
+//                    Neuron* leftNeuron = &m_layers[i - 1][k];
 
-                    // dC/d(w_k1k2)^L = (a_k1)^L-1 * s'((z_k2)^L) * dC/d(a_k2)^L
-                    // deltaWeight = (-1) * dC/d(w_k1k2)^L
-                    currNeuron->weights[k] -= leftNeuron->output
-                            * m_layerActivFunc[i].derivPtr(currNeuron->weightedSum, this)
-                            * currNeuron->gradient;
-                }
-            }
-        }
-    }
-}
+//                    // dC/d(w_k1k2)^L = (a_k1)^L-1 * s'((z_k2)^L) * dC/d(a_k2)^L
+//                    // deltaWeight = (-1) * dC/d(w_k1k2)^L
+//                    currNeuron->weights[k] -= leftNeuron->output
+//                            * m_layerActivFunc[i].derivPtr(currNeuron->weightedSum, this)
+//                            * currNeuron->gradient;
+//                }
+//            }
+//        }
+//    }
+//}
 
 void NeuralNet::softMax(real_vec& vec)
 {

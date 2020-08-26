@@ -3,6 +3,11 @@
 
 #include <Common/types.h>
 
+// Need
+//  matrixMulti(real_vec, real_vec)
+//  matrixScale(real, real_vec)
+//  matrixElemWiseMulti(real_vec, real_vec)
+
 struct Neuron
 {
     Neuron(size_t size)
@@ -95,11 +100,11 @@ struct OptimizeFunction
 class NeuralNet
 {
 public:
-    NeuralNet(std::vector<size_t> size);
+    NeuralNet(std::vector<size_t> size);    
 
     void propergate(real_vec input);
     real train(real_matrix input, real_matrix target);    
-    void backpropergate(real_vec input, real_vec error);
+//    void backpropergate(real_vec input, real_vec error);
     void softMax(real_vec& vec);
     void softMax(Layer& vec);
     void printState(real_vec input, real_vec target, real_vec error, size_t batchIdx);
@@ -117,6 +122,13 @@ public:
     real learningRate();
     void setLearningRate(real learningRate);
 
+
+    // Might switch enums to structs
+    // Like so:
+    // InitFunc::Random rnd = {1, 0.3, false};
+    // setInitializationFunction(rnd);
+    // And have a seperate function for each built-in type
+    // Custom functions will work as is
     void setInitializationFunction(InitializationFunction::Type init_func);
     void setInitializationFunction(void (*initFunc)(NeuralNet*));
 

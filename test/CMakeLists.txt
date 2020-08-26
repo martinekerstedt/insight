@@ -22,6 +22,8 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
     src/squaretest.cpp
     src/neuralnettest.cpp
+    src/vectortest.cpp
+    src/matrixtest.cpp
 )
 
 
@@ -40,4 +42,3 @@ target_link_libraries(${PROJECT_NAME}
         insight
         gtest
 )
-
