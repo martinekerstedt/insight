@@ -2,6 +2,7 @@
 #define NEURAL_NET_H
 
 #include <Common/types.h>
+#include <NeuralNet/matrix.h>
 
 // Need
 //  matrixMulti(real_vec, real_vec)
@@ -38,7 +39,37 @@ struct Neuron
     }
 };
 
-typedef std::vector<Neuron> Layer;
+//typedef std::vector<Neuron> Layer;
+
+
+struct Layer
+{
+    Layer(size_t prevLayerSize, size_t size) :
+        output(size, 0.0),
+        bias(size, 0.0),
+        gradient(size, 0.0),
+        weightedSum(size, 0.0),
+        weights(size, prevLayerSize, 0.0),
+        m_size(size)
+    {
+
+    }
+
+    Vector output;
+    Vector bias;
+    Vector gradient;
+    Vector weightedSum;
+    Matrix weights;
+
+    size_t size()
+    {
+        return m_size;
+    }
+
+private:
+    size_t m_size;
+
+};
 
 class NeuralNet;
 
@@ -66,7 +97,7 @@ struct CostFunction
 
     // Custom function has type = 0
     unsigned int type;
-    real (*ptr)(real, real, NeuralNet*);
+    Vector (*ptr)(Vector, Vector, NeuralNet*);
 };
 
 struct ActivationFunction
@@ -80,8 +111,8 @@ struct ActivationFunction
 
     // Custom function has type = 0
     unsigned int type;
-    real (*ptr)(real, NeuralNet*);
-    real (*derivPtr)(real, NeuralNet*);
+    Vector (*ptr)(Vector, NeuralNet*);
+    Vector (*derivPtr)(Vector, NeuralNet*);
 };
 
 struct OptimizeFunction
@@ -94,7 +125,7 @@ struct OptimizeFunction
 
     // Custom function has type = 0
     unsigned int type;
-    void (*ptr)(real_vec, real_vec, NeuralNet*);
+    void (*ptr)(Vector, Vector, NeuralNet*);
 };
 
 class NeuralNet
@@ -105,9 +136,9 @@ public:
     void propergate(real_vec input);
     real train(real_matrix input, real_matrix target);    
 //    void backpropergate(real_vec input, real_vec error);
-    void softMax(real_vec& vec);
-    void softMax(Layer& vec);
-    void printState(real_vec input, real_vec target, real_vec error, size_t batchIdx);
+//    void softMax(real_vec& vec);
+    void softMax(Vector& vec);
+    void printState(Vector input, Vector target, Vector error, size_t batchIdx);
 
     std::vector<size_t> sizeVec();
     std::vector<Layer>& layers();
@@ -133,19 +164,21 @@ public:
     void setInitializationFunction(void (*initFunc)(NeuralNet*));
 
     void setCostFunction(CostFunction::Type cost_func);
-    void setCostFunction(real (*costFunc)(real, real, NeuralNet*));
+    void setCostFunction(Vector (*costFunc)(Vector, Vector, NeuralNet*));
 
-    real activationFunction(unsigned int layerIdx, real x);
-    real activationFunctionDerivate(unsigned int layerIdx, real x);
+    Vector activationFunction(unsigned int layerIdx, Vector x);
+    Vector activationFunctionDerivate(unsigned int layerIdx, Vector x);
+
     void setHiddenLayerActivationFunction(ActivationFunction::Type activ_func);
-    void setHiddenLayerActivationFunction(real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*));
+    void setHiddenLayerActivationFunction(Vector (*activFunc)(Vector, NeuralNet*), Vector (*activFuncDeriv)(Vector, NeuralNet*));
     void setOutputLayerActivationFunction(ActivationFunction::Type activ_func);
-    void setOutputLayerActivationFunction(real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*));
+    void setOutputLayerActivationFunction(Vector (*activFunc)(Vector, NeuralNet*), Vector (*activFuncDeriv)(Vector, NeuralNet*));
+
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::Type activ_func);
-    void setActivationFunction(unsigned int layerIdx, real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*));
+    void setActivationFunction(unsigned int layerIdx, Vector (*activFunc)(Vector, NeuralNet*), Vector (*activFuncDeriv)(Vector, NeuralNet*));
 
     void setOptimizeFunction(OptimizeFunction::Type opt_func);
-    void setOptimizeFunction(void (*optFunc)(real_vec, real_vec, NeuralNet*));
+    void setOptimizeFunction(void (*optFunc)(Vector, Vector, NeuralNet*));
 
 private:
     std::vector<size_t> m_sizeVec;

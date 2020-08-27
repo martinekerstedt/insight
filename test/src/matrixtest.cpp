@@ -535,6 +535,18 @@ TEST(MatrixOperators, Transpose)
     EXPECT_TRUE(expected_mat == mat.transpose());
 }
 
+TEST(MatrixOperators, ElementWiseSubtraction)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+
+    Matrix mat3 = mat1.subtractElemWise(mat2);
+
+    for (unsigned i = 0; i < mat1.size(); ++i) {
+        EXPECT_FLOAT_EQ(mat3(i), mat1(i) - mat2(i));
+    }
+}
+
 TEST(MatrixOperators, ElementWiseMultiplication)
 {
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);

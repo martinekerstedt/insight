@@ -237,7 +237,7 @@ int main()
     NeuralNet net(size_vec);
 
 
-    net.setNEpochs(3);
+    net.setNEpochs(10);
     net.setBatchSize(1);
     net.setLearningRate(0.01);
     net.setPrintInterval(10000);
@@ -307,15 +307,15 @@ int main()
 
 
         // Format target
-//        real_vec target_sample;
-//        for (size_t j = 0; j < 10; ++j) {
+        real_vec target_sample;
+        for (size_t j = 0; j < 10; ++j) {
 
-//            if (j == (unsigned int)test_labels[i]) {
-//                target_sample.push_back(1);
-//            } else {
-//                target_sample.push_back(0);
-//            }
-//        }
+            if (j == (unsigned int)test_labels[i]) {
+                target_sample.push_back(1);
+            } else {
+                target_sample.push_back(0);
+            }
+        }
 
 
         // Check
@@ -327,13 +327,13 @@ int main()
 
         for (size_t j = 0; j < layers.back().size(); ++j) {
             // Find max value
-            if (res < layers.back()[j].output) {
-                res = layers.back()[j].output;
+            if (res < layers.back().output(j)) {
+                res = layers.back().output(j);
                 resIdx = j;
             }
 
             // Sum all
-            mean += layers.back()[j].output;
+            mean += layers.back().output(j);
         }
 
         // Calc mean
@@ -358,7 +358,7 @@ int main()
 
             // Check for values close to max value
             for (size_t j = 0; j < layers.back().size(); ++j) {
-                if (layers.back()[j].output > (res - 0.05)) {
+                if (layers.back().output(j) > (res - 0.05)) {
                     // Uncertain res
                     uncertainRes = true;
                     break;

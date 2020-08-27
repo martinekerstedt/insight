@@ -279,6 +279,28 @@ TEST(VectorVectorOperators, CumulativeDivision)
     }
 }
 
+TEST(VectorVectorOperators, MatrixMultiplication)
+{
+    Vector vec1;
+    vec1 = {4.7623, 79.4754, 38.1879, 49.5188, 75.7517,
+            22.0866, 10.2207, 84.6985, 45.7489, 56.1249};
+
+    Vector vec2;
+    vec2 = {28.2063, 5.7376, 75.3608, 83.5950, 63.7761,
+            17.1146, 24.1795, 3.9167, 95.6260, 47.6290};
+
+    Matrix mat = vec1.matMul(vec2);
+
+    EXPECT_EQ(mat.rows(), vec1.size());
+    EXPECT_EQ(mat.cols(), vec2.size());
+
+    for (unsigned i = 0; i < mat.rows(); ++i) {
+        for (unsigned j = 0; j < mat.cols(); ++j) {
+            EXPECT_FLOAT_EQ(mat(i, j), vec1(i) * vec2(j));
+        }
+    }
+}
+
 // Vector/std::vector operators
 TEST(VectorStdVectorOperators, Addition)
 {

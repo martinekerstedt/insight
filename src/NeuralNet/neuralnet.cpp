@@ -11,22 +11,22 @@
 void init_func_standard(NeuralNet* net);
 
 // Cost function declarations
-real cost_func_difference(real output, real target, NeuralNet* net);
-real cost_func_square_difference(real output, real target, NeuralNet* net);
-real cost_func_cross_entropy(real output, real target, NeuralNet* net);
+Vector cost_func_difference(Vector output, Vector target, NeuralNet* net);
+Vector cost_func_square_difference(Vector output, Vector target, NeuralNet* net);
+Vector cost_func_cross_entropy(Vector output, Vector target, NeuralNet* net);
 
 // Activation function declarations
-real activation_func_relu(real x, NeuralNet* net);
-real activation_func_sigmoid(real x, NeuralNet* net);
-real activation_func_tanh(real x, NeuralNet* net);
+Vector activation_func_relu(Vector x, NeuralNet* net);
+Vector activation_func_sigmoid(Vector x, NeuralNet* net);
+Vector activation_func_tanh(Vector x, NeuralNet* net);
 
 // Activation function derivative declarations
-real activation_func_relu_deriv(real x, NeuralNet* net);
-real activation_func_sigmoid_deriv(real x, NeuralNet* net);
-real activation_func_tanh_deriv(real x, NeuralNet* net);
+Vector activation_func_relu_deriv(Vector x, NeuralNet* net);
+Vector activation_func_sigmoid_deriv(Vector x, NeuralNet* net);
+Vector activation_func_tanh_deriv(Vector x, NeuralNet* net);
 
 // Optimizer function declarations
-void optimize_func_backprop(real_vec input, real_vec error, NeuralNet* net);
+void optimize_func_backprop(Vector input, Vector error, NeuralNet* net);
 
 NeuralNet::NeuralNet(std::vector<size_t> sizeVec) :
     m_sizeVec(sizeVec),
@@ -67,7 +67,7 @@ NeuralNet::NeuralNet(std::vector<size_t> sizeVec) :
     for (size_t i = 0; i < (m_sizeVec.size() - 1); ++i) {
 
         // Add layer
-        m_layers.push_back(Layer());
+        m_layers.push_back(Layer(m_sizeVec[i], m_sizeVec[i + 1]));
 
         // Add activation function to layer, default to sigmoid
         ActivationFunction activFunc;
@@ -75,22 +75,12 @@ NeuralNet::NeuralNet(std::vector<size_t> sizeVec) :
         activFunc.ptr = activation_func_sigmoid;
         activFunc.derivPtr = activation_func_sigmoid_deriv;
         m_layerActivFunc.push_back(activFunc);
-
-        // Add neurons to layer
-        for (size_t j = 0; j < m_sizeVec[i + 1]; ++j) {
-            m_layers.back().push_back(Neuron(m_sizeVec[i]));
-        }
     }
 
 
     // Init weights and biases
     m_initFunc.ptr(this);
 }
-
-//void NeuralNet::testNamedParam(NamedParameter<void>*)
-//{
-
-//}
 
 void NeuralNet::propergate(real_vec input)
 {
@@ -101,37 +91,21 @@ void NeuralNet::propergate(real_vec input)
                     << m_sizeVec[0]);
     }
 
-    real_vec res;
+    // When not training, dont need to cache weightedSum
+    // m_layers[i].output = activFunc(matrixAdd(matrixMulti(input, m_layers[i].weights), m_layers[i].bias));
 
-    for (size_t i = 0; i < m_layers.size(); ++i) {
+    // Propergate input layer
+    m_layers[0].weightedSum = (m_layers[0].weights * input) + m_layers[0].bias;
+    m_layers[0].output = m_layerActivFunc[0].ptr(m_layers[0].weightedSum, this);
 
-        for (size_t j = 0; j < m_layers[i].size(); ++j) {
-            // Calc neuron output
-            Neuron* neuron = &m_layers[i][j];
-
-            neuron->weightedSum = 0;
-
-            // Weighted sum
-            for (size_t k = 0; k < neuron->size(); ++k) {
-                neuron->weightedSum += input[k] * neuron->weights[k];
-            }
-
-            // Add bias
-            neuron->weightedSum += neuron->bias;
-
-            // Apply activation func
-            neuron->output = m_layerActivFunc[i].ptr(neuron->weightedSum, this);
-
-            // Save output to feed to next layer
-            res.push_back(neuron->output);
-        }
-
-        input = res;
-        res.clear();                
+    for (unsigned i = 1; i < m_layers.size(); ++i) {
+        // Propergate hidden and output layers
+        m_layers[i].weightedSum = (m_layers[i].weights * m_layers[i - 1].output) + m_layers[i].bias;
+        m_layers[i].output = m_layerActivFunc[i].ptr(m_layers[i].weightedSum, this);
     }
 
     if (m_softMax) {
-        softMax(m_layers.back());
+        softMax(m_layers.back().output);
     }
 }
 
@@ -143,7 +117,7 @@ real NeuralNet::train(real_matrix input, real_matrix target)
                     << input.size()
                     << ", Expected: "
                     << m_sizeVec.front());
-    }    
+    }
 
     for (size_t i = 0; i < input.size(); ++i) {
         if (input[i].size() != m_sizeVec.front()) {
@@ -163,7 +137,6 @@ real NeuralNet::train(real_matrix input, real_matrix target)
         }
     }
 
-
     // Number of epochs
     for (size_t epoch = 0; epoch < m_nEpochs; ++epoch) {
 
@@ -182,14 +155,11 @@ real NeuralNet::train(real_matrix input, real_matrix target)
             // Training batch
             size_t batchMax = std::min(inputIdx + m_batchSize, input.size());
 
-            real_vec error;
-            error.resize(m_layers.back().size(), 0);
+            Vector error(m_layers.back().size(), 1);
 
-            real_vec avg_error;
-            avg_error.resize(target.front().size(), 0);
+            Vector avg_error(m_layers.back().size(), 0.0);
 
-            real_vec avg_input;
-            avg_input.resize(input.front().size(), 0);
+            Vector avg_input(input.front().size(), 0.0);
 
             for (size_t batchIdx = inputIdx; batchIdx < batchMax; ++batchIdx) {
 
@@ -197,20 +167,14 @@ real NeuralNet::train(real_matrix input, real_matrix target)
                 propergate(input[batchIdx]);
 
                 // Calc error vector, average over batch
-                for (size_t i = 0; i < target[batchIdx].size(); ++i) {
-                    error[i] = m_costFunc.ptr(m_layers.back()[i].output, target[batchIdx][i], this);
-                }
+                error = m_costFunc.ptr(m_layers.back().output, target[batchIdx], this);
 
                 // Save error to get average
                 // Note: avg_error.size() == output.size() == target.size()
-                for (size_t errorIdx = 0; errorIdx < avg_error.size(); ++errorIdx) {
-                    avg_error[errorIdx] += error[errorIdx];
-                }
+                avg_error += error;
 
                 // Average input
-                for (size_t i = 0; i < avg_input.size(); ++i) {
-                    avg_input[i] += input[batchIdx][i];
-                }
+                avg_input += input[batchIdx];
 
                 // Print
                 if ((batchIdx % m_printInterval) == 0) {
@@ -221,18 +185,11 @@ real NeuralNet::train(real_matrix input, real_matrix target)
 
             // Divide to get avgerages
             size_t nSamples = batchMax - inputIdx;
-
-            for (size_t i = 0; i < avg_error.size(); ++i) {
-                avg_error[i] /= nSamples;
-            }
-
-            for (size_t i = 0; i < avg_input.size(); ++i) {
-                avg_input[i] /= nSamples;
-            }
+            avg_error /= nSamples;
+            avg_input /= nSamples;
 
 
             // Optimize on avg_error
-//            backpropergate(avg_input, avg_error);
             m_optFunc.ptr(avg_input, avg_error, this);
 
 
@@ -325,35 +282,21 @@ real NeuralNet::train(real_matrix input, real_matrix target)
 //    }
 //}
 
-void NeuralNet::softMax(real_vec& vec)
+void NeuralNet::softMax(Vector& output)
 {
     real sum = 0;
 
-    for (size_t i = 0; i < vec.size(); ++i) {
-        vec[i] = std::exp(vec[i]);
-        sum += vec[i];
+    for (size_t i = 0; i < output.size(); ++i) {
+        output(i) = std::exp(output(i));
+        sum += output(i);
     }
 
-    for (size_t i = 0; i < vec.size(); ++i) {
-        vec[i] /= sum;
-    }
-}
-
-void NeuralNet::softMax(Layer& layer)
-{
-    real sum = 0;
-
-    for (size_t i = 0; i < layer.size(); ++i) {
-        layer[i].output = std::exp(layer[i].output);
-        sum += layer[i].output;
-    }
-
-    for (size_t i = 0; i < layer.size(); ++i) {
-        layer[i].output /= sum;
+    for (size_t i = 0; i < output.size(); ++i) {
+        output(i) /= sum;
     }
 }
 
-void NeuralNet::printState(real_vec input, real_vec target, real_vec error, size_t batchIdx)
+void NeuralNet::printState(Vector input, Vector target, Vector error, size_t batchIdx)
 {
     // Create stream
     std::stringstream ss;
@@ -383,7 +326,7 @@ void NeuralNet::printState(real_vec input, real_vec target, real_vec error, size
 
 
     // Output
-    real output = m_layers.back()[0].output;
+    real output = m_layers.back().output(0);
 
     if (output < 0) {
         ss << "out: [" << output;
@@ -392,7 +335,7 @@ void NeuralNet::printState(real_vec input, real_vec target, real_vec error, size
     }
 
     for (size_t i = 1; i < m_layers.back().size(); ++i) {
-        output = m_layers.back()[i].output;
+        output = m_layers.back().output(i);
 
         if (output < 0) {
             ss << ", " << output;
@@ -406,10 +349,10 @@ void NeuralNet::printState(real_vec input, real_vec target, real_vec error, size
 
 
     // Target
-    ss << "tar: [ " << target[0];
+    ss << "tar: [ " << target(0);
 
     for (size_t i = 1; i < target.size(); ++i) {
-        ss << ",  " << target[i];
+        ss << ",  " << target(i);
     }
 
     ss << " ]\n";
@@ -417,7 +360,7 @@ void NeuralNet::printState(real_vec input, real_vec target, real_vec error, size
 
 
     // Error
-    real err = error[0];
+    real err = error(0);
 
     if (err < 0) {
         ss << "err: [" << err;
@@ -426,7 +369,7 @@ void NeuralNet::printState(real_vec input, real_vec target, real_vec error, size
     }
 
     for (size_t i = 1; i < error.size(); ++i) {
-        err = error[i];
+        err = error(i);
 
         if (err < 0) {
             ss << ", " << err;
@@ -442,7 +385,7 @@ void NeuralNet::printState(real_vec input, real_vec target, real_vec error, size
     // Cost
     real cost = 0;
     for (size_t i = 0; i < error.size(); ++i) {
-        cost += std::pow(error[i], 2);
+        cost += std::pow(error(i), 2);
     }
 
     if (cost < 0) {
@@ -556,8 +499,8 @@ void init_func_standard(NeuralNet* net)
 //            net->layers()[i][j].bias = 0; // default is zero
 
             // Loop weights
-            for (size_t k = 0; k < layers[i][j].size(); ++k) {
-                layers[i][j][k] = d(gen);
+            for (size_t k = 0; k < layers[i].weights.cols(); ++k) {
+                layers[i].weights(j, k) = d(gen);
             }
         }
     }
@@ -583,64 +526,76 @@ void NeuralNet::setCostFunction(CostFunction::Type cost_func)
     m_costFunc.type = cost_func;
 }
 
-void NeuralNet::setCostFunction(real (*costFunc)(real output, real target, NeuralNet* net))
+void NeuralNet::setCostFunction(Vector (*costFunc)(Vector output, Vector target, NeuralNet* net))
 {
     m_costFunc.type = 0;
     m_costFunc.ptr = costFunc;
 }
 
-real cost_func_difference(real output, real target, NeuralNet *net)
+Vector cost_func_difference(Vector output, Vector target, NeuralNet *net)
 {
     (void)net;
 
     return output - target;
 }
 
-real cost_func_square_difference(real output, real target, NeuralNet *net)
+Vector cost_func_square_difference(Vector output, Vector target, NeuralNet *net)
 {
     (void)net;
 
-    real diff = output - target;
+    Vector diff = output - target;
 
-    if (diff >= 0.0) {
-        return std::pow(diff, 2);
-    } else {
-        return -std::pow(diff, 2);
+    for (unsigned i = 0; i < diff.size(); ++i) {
+        real& val = diff(i);
+
+        if (val >= 0.0) {
+            val = std::pow(val, 2);
+        } else {
+            val = -std::pow(val, 2);
+        }
     }
+
+    return diff;
 }
 
-real cost_func_cross_entropy(real output, real target, NeuralNet *net)
+Vector cost_func_cross_entropy(Vector output, Vector target, NeuralNet *net)
 {
     (void)net;
 
     // Assumes that target is either 1 or 0
     // And that output is between 0 and 1
-    if ((output > 1.0) || (output < 0.0)) {
-        THROW_ERROR("Invalid value of output: "
-                    << output
-                    << ", Expected: Between 0 and 1");
+//    if ((output > 1.0) || (output < 0.0)) {
+//        THROW_ERROR("Invalid value of output: "
+//                    << output
+//                    << ", Expected: Between 0 and 1");
+//    }
+
+//    if ((target > 1.0) || (target < 0.0)) {
+//        THROW_ERROR("Invalid value of target: "
+//                    << output
+//                    << ", Expected: Between 0 and 1");
+//    }
+
+    Vector res(output.size(), 1);
+
+    for (unsigned i = 0; i < output.size(); ++i) {
+        if (target(i) == 1.0) {
+            res(i) = -std::log(output(i));
+        } else {
+            res(i) = -std::log(1 - output(i));
+        }
     }
 
-    if ((target > 1.0) || (target < 0.0)) {
-        THROW_ERROR("Invalid value of target: "
-                    << output
-                    << ", Expected: Between 0 and 1");
-    }
-
-    if (target == 1.0) {
-        return -std::log(output);
-    } else {
-        return -std::log(1 - output);
-    }
+    return res;
 }
 
 // Activation functions
-real NeuralNet::activationFunction(unsigned int layerIdx, real x)
+Vector NeuralNet::activationFunction(unsigned int layerIdx, Vector x)
 {
     return m_layerActivFunc[layerIdx].ptr(x, this);
 }
 
-real NeuralNet::activationFunctionDerivate(unsigned int layerIdx, real x)
+Vector NeuralNet::activationFunctionDerivate(unsigned int layerIdx, Vector x)
 {
     return m_layerActivFunc[layerIdx].derivPtr(x, this);
 }
@@ -652,7 +607,7 @@ void NeuralNet::setHiddenLayerActivationFunction(ActivationFunction::Type activ_
     }
 }
 
-void NeuralNet::setHiddenLayerActivationFunction(real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*))
+void NeuralNet::setHiddenLayerActivationFunction(Vector (*activFunc)(Vector, NeuralNet*), Vector (*activFuncDeriv)(Vector, NeuralNet*))
 {
     for (size_t i = 0; i < m_layers.size() - 1; ++i) {
         setActivationFunction(i, activFunc, activFuncDeriv);
@@ -664,7 +619,7 @@ void NeuralNet::setOutputLayerActivationFunction(ActivationFunction::Type activ_
     setActivationFunction(m_layers.size() - 1, activ_func);
 }
 
-void NeuralNet::setOutputLayerActivationFunction(real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*))
+void NeuralNet::setOutputLayerActivationFunction(Vector (*activFunc)(Vector, NeuralNet*), Vector (*activFuncDeriv)(Vector, NeuralNet*))
 {
     // What happens at layer.size == 1???
     setActivationFunction(m_layers.size() - 1, activFunc, activFuncDeriv);
@@ -692,96 +647,150 @@ void NeuralNet::setActivationFunction(unsigned int layerIdx, ActivationFunction:
     m_layerActivFunc[layerIdx].type = activ_func;
 }
 
-void NeuralNet::setActivationFunction(unsigned int layerIdx, real (*activFunc)(real, NeuralNet*), real (*activFuncDeriv)(real, NeuralNet*))
+void NeuralNet::setActivationFunction(unsigned int layerIdx, Vector (*activFunc)(Vector, NeuralNet*), Vector (*activFuncDeriv)(Vector, NeuralNet*))
 {
     m_layerActivFunc[layerIdx].type = 0;
     m_layerActivFunc[layerIdx].ptr = activFunc;
     m_layerActivFunc[layerIdx].derivPtr = activFuncDeriv;
 }
 
-real activation_func_relu(real x, NeuralNet *net)
+Vector activation_func_relu(Vector x, NeuralNet *net)
 {
     (void)net;
 
     static const real e = static_cast<real>(std::exp(1.0));
 
-    if (x >= 0.0) {
-        return x;
-    } else {
-        if (x < -15.0) {
-            return -0.2;
+    Vector res(x.size(), 1);
+
+    for (unsigned i = 0; i < x.size(); ++i) {
+
+        real val = x(i);
+
+        if (val >= 0.0) {
+            res(i) = val;
         } else {
-            return 0.2*(std::pow(e, x) - 1.0);
+            if (val < -15.0) {
+                res(i) = -0.2;
+            } else {
+                res(i) = 0.2*(std::pow(e, val) - 1.0);
+            }
         }
     }
+
+    return res;
 }
 
-real activation_func_sigmoid(real x, NeuralNet *net)
+Vector activation_func_sigmoid(Vector x, NeuralNet *net)
 {
     (void)net;
 
     static const real e = static_cast<real>(std::exp(1.0));
 
-    if (x > 15.0) {
-        return 1.0;
-    } else if (x < -15.0) {
-        return 0.0;
-    } else {
-        return 1.0 / (1.0 + std::pow(e, -x));
+    Vector res(x.size(), 1);
+
+    for (unsigned i = 0; i < x.size(); ++i) {
+
+        real val = x(i);
+
+        if (val > 15.0) {
+            res(i) = 1.0;
+        } else if (val < -15.0) {
+            res(i) = 0.0;
+        } else {
+            res(i) = 1.0 / (1.0 + std::pow(e, -val));
+        }
+
     }
+
+    return res;
 }
 
-real activation_func_tanh(real x, NeuralNet *net)
+Vector activation_func_tanh(Vector x, NeuralNet *net)
 {
     (void)net;
 
-    if (x > 15.0) {
-        return 1.0;
-    } else if (x < -15.0) {
-        return -1.0;
-    } else {
-        return std::tanh(x);
+    Vector res(x.size(), 1);
+
+    for (unsigned i = 0; i < x.size(); ++i) {
+
+        real val = x(i);
+
+        if (val > 15.0) {
+            res(i) = 1.0;
+        } else if (val < -15.0) {
+            res(i) = -1.0;
+        } else {
+            res(i) = std::tanh(val);
+        }
+
     }
+
+    return res;
 }
 
 // Activation function derivatives
-real activation_func_relu_deriv(real x, NeuralNet *net)
+Vector activation_func_relu_deriv(Vector x, NeuralNet *net)
 {
     (void)net;
 
     static const real e = static_cast<real>(std::exp(1.0));
 
-    if (x >= 0) {
-        return 1.0;
-    } else {
-        if (x < -15.0) {
-            return 0;
+    Vector res(x.size(), 1);
+
+    for (unsigned i = 0; i < x.size(); ++i) {
+
+        real val = x(i);
+
+        if (val >= 0) {
+            res(i) = 1.0;
         } else {
-            return 0.2*std::pow(e, x);
+            if (val < -15.0) {
+                res(i) = 0;
+            } else {
+                res(i) = 0.2*std::pow(e, val);
+            }
+        }
+
+    }
+
+    return res;
+}
+
+Vector activation_func_sigmoid_deriv(Vector x, NeuralNet *net)
+{
+    (void)net;
+
+    static const real e = static_cast<real>(std::exp(1.0));
+
+    Vector res(x.size(), 1);
+
+    for (unsigned i = 0; i < x.size(); ++i) {
+
+        real val = x(i);
+
+        if (val > 15) {
+            res(i) = 0;
+        } else if (val < -15) {
+            res(i) = 0;
+        } else {
+            res(i) = std::pow(e, -val) / std::pow(1 + std::pow(e, -val), 2);
         }
     }
+
+    return res;
 }
 
-real activation_func_sigmoid_deriv(real x, NeuralNet *net)
+Vector activation_func_tanh_deriv(Vector x, NeuralNet *net)
 {
     (void)net;
 
-    static const real e = static_cast<real>(std::exp(1.0));
+    Vector res(x.size(), 1);
 
-    if (x > 15) {
-        return 0;
-    } else if (x < -15) {
-        return 0;
-    } else {
-        return std::pow(e, -x) / std::pow(1 + std::pow(e, -x), 2);
+    for (unsigned i = 0; i < x.size(); ++i) {
+        res(i) = 2 / (std::cosh(2*x(i)) + 1);
     }
-}
 
-real activation_func_tanh_deriv(real x, NeuralNet *net)
-{
-    (void)net;
-
-    return 2 / (std::cosh(2*x) + 1);
+    return res;
 }
 
 // Optimize functions
@@ -800,93 +809,39 @@ void NeuralNet::setOptimizeFunction(OptimizeFunction::Type opt_func)
     m_optFunc.type = opt_func;
 }
 
-void NeuralNet::setOptimizeFunction(void (*optFunc)(real_vec, real_vec, NeuralNet*))
+void NeuralNet::setOptimizeFunction(void (*optFunc)(Vector, Vector, NeuralNet*))
 {
     m_optFunc.type = 0;
     m_optFunc.ptr = optFunc;
 }
 
-void optimize_func_backprop(real_vec input, real_vec error, NeuralNet* net)
+void optimize_func_backprop(Vector input, Vector error, NeuralNet* net)
 {
     std::vector<Layer>& layers = net->layers();
 
-    // Loop the weights back to front
-    // Loop layers
-    for (int i = (int)layers.size() - 1; i >= 0; --i) {
+    // Backprop output layer
+    layers.back().gradient = error*net->learningRate();
 
-        // Loop neurons
-        for (size_t j = 0; j < layers[i].size(); ++j) {
-            // Current neuron
-            Neuron* currNeuron = &layers[i][j];
+    // Loop backwards
+    for (int i = (layers.size() - 2); i >= 0; --i) {
 
-            // Calc dC/da aka gradient of neuron a
-            // Different for output layer
-            if ((size_t)i == (layers.size() - 1)) {
-
-                // dC/da = 2 * (a_k - t_k)
-                currNeuron->gradient = error[j]*net->learningRate(); // Put learning rate here?
-                // Also, change learningRate according to how much the cost diviates from the mean cost over the last samples
-                // In other words, increase learningRate when encountering outliers
-
-            } else {
-
-                currNeuron->gradient = 0;
-
-                // Loop neurons of the layer to the right of the current layer
-                // dC/da_k1 = sum of (w_k1k2)^L+1 * s'((z_k2)^L+1) * (g_k2)^L+1 for all k2
-                for (size_t k = 0; k < layers[i + 1].size(); ++k) {
-
-                    Neuron* rightNeuron = &layers[i + 1][k];
-
-                    currNeuron->gradient += rightNeuron->weights[j]
-                            * net->activationFunctionDerivate(i, rightNeuron->weightedSum)
-                            * rightNeuron->gradient;
-                }
-            }
-        }
+                layers[i].gradient = layers[i + 1].weights.transpose()
+                        * (net->activationFunctionDerivate(i, layers[i + 1].weightedSum)
+                        * layers[i + 1].gradient);
     }
 
-    // Update weights
-    // Loop layers back to front
-    for (int i = (int)layers.size() - 1; i >= 0; --i) {
+    // Loop backwards
+    for (int i = (layers.size() - 1); i > 0; --i) {
 
-        // Loop neurons
-        for (size_t j = 0; j < layers[i].size(); ++j) {
+        layers[i].weights = layers[i].weights.subtractElemWise(
+                    (net->activationFunctionDerivate(i, layers[i].weightedSum) * layers[i].gradient).matMul(layers[i - 1].output)
+                );
 
-            // Current neuron
-            Neuron* currNeuron = &layers[i][j];
-
-            // Update current neurons bias
-            // dC/db = s'(z) * dC/da
-            // deltaBias = (-1) * dC/db
-            currNeuron->bias -= net->activationFunctionDerivate(i, currNeuron->weightedSum)
-                    * currNeuron->gradient;
-
-            // Loop weights
-            for (size_t k = 0; k < currNeuron->size(); ++k) {
-
-                // Weights in the first layer are connected to the input vector and NOT a neuron layer
-                if (i == 0) {
-
-                    // dC/d(w_k1k2)^L = input[k1] * s'((z_k2)^L) * dC/d(a_k2)^L
-                    // deltaWeight = (-1) * dC/d(w_k1k2)^L
-                    currNeuron->weights[k] -= input[k]
-                            * net->activationFunctionDerivate(i, currNeuron->weightedSum)
-                            * currNeuron->gradient;
-                } else {
-
-                    // Neuron in the layer to the left that the weight is connected to
-                    Neuron* leftNeuron = &layers[i - 1][k];
-
-                    // dC/d(w_k1k2)^L = (a_k1)^L-1 * s'((z_k2)^L) * dC/d(a_k2)^L
-                    // deltaWeight = (-1) * dC/d(w_k1k2)^L
-                    currNeuron->weights[k] -= leftNeuron->output
-                            * net->activationFunctionDerivate(i, currNeuron->weightedSum)
-                            * currNeuron->gradient;
-                }
-            }
-        }
     }
+
+    layers[0].weights = layers[0].weights.subtractElemWise(
+                (net->activationFunctionDerivate(0, layers[0].weightedSum) * layers[0].gradient).matMul(input)
+            );
 }
 
 

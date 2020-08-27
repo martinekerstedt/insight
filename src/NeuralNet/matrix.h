@@ -52,7 +52,6 @@ public:
     bool operator!=(const std::vector<real>& rhs);
     Vector operator*(const std::vector<real>& rhs);
 
-
     // Matrix/scalar operators
     Matrix operator+(const real& rhs);
     Matrix operator-(const real& rhs);
@@ -64,7 +63,8 @@ public:
     Matrix& operator/=(const real& rhs);
 
     // Matrix operators
-    Matrix transpose();        
+    Matrix transpose();
+    Matrix subtractElemWise(const Matrix& rhs);
     Matrix multiplyElemWise(const Matrix& rhs);
 
     // Access

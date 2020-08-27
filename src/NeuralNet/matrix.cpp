@@ -589,6 +589,25 @@ Matrix Matrix::transpose()
     return res;
 }
 
+Matrix Matrix::subtractElemWise(const Matrix &rhs)
+{
+    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
+        THROW_ERROR("Matrix sizes must be equal. "
+                    << m_rows << "x" << m_cols
+                    << " != "
+                    << rhs.m_rows << "x" << rhs.m_cols
+                    << ".");
+    }
+
+    Matrix res(m_rows, m_cols);
+
+    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+        res.m_vec[i] = m_vec[i] - rhs.m_vec[i];
+    }
+
+    return res;
+}
+
 Matrix Matrix::multiplyElemWise(const Matrix &rhs)
 {
     if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {

@@ -33,6 +33,7 @@ public:
     Vector& operator-=(const Vector& rhs);
     Vector& operator*=(const Vector& rhs);
     Vector& operator/=(const Vector& rhs);
+    Matrix matMul(const Vector& rhs);
 
     // Vector/std::vector operators
     bool operator==(const std::vector<real>& rhs);

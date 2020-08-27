@@ -248,6 +248,19 @@ Vector& Vector::operator/=(const Vector& rhs)
     return *this;
 }
 
+Matrix Vector::matMul(const Vector &rhs)
+{
+    Matrix mat(m_size, rhs.m_size);
+
+    for (unsigned i = 0; i < m_size; ++i) {
+        for (unsigned j = 0; j < rhs.m_size; ++j) {
+            mat(i, j) = m_vec[i] * rhs.m_vec[j];
+        }
+    }
+
+    return mat;
+}
+
 // Vector/std::vector operations
 bool Vector::operator==(const std::vector<real> &rhs)
 {
