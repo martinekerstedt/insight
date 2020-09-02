@@ -101,8 +101,9 @@ class NeuralNet
 public:
     NeuralNet(std::vector<size_t> size);    
 
-    void propergate(real_vec input);
-    real train(real_matrix input, real_matrix target);    
+    void propergate(Vector input);
+//    real train(real_matrix input, real_matrix target);
+    real train(Matrix input, Matrix target);
 //    void backpropergate(real_vec input, real_vec error);
 //    void softMax(real_vec& vec);
     void softMax(Vector& vec);
@@ -165,3 +166,4 @@ private:
 };
 
 #endif // NEURAL_NET_H
+

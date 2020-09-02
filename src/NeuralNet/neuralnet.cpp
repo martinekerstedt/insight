@@ -82,7 +82,34 @@ NeuralNet::NeuralNet(std::vector<size_t> sizeVec) :
     m_initFunc.ptr(this);
 }
 
-void NeuralNet::propergate(real_vec input)
+//void NeuralNet::propergate(real_vec input)
+//{
+//    if (input.size() != m_sizeVec[0]) {
+//        THROW_ERROR("Invalid input size: "
+//                    << input.size()
+//                    << ", Expected: "
+//                    << m_sizeVec[0]);
+//    }
+
+//    // When not training, dont need to cache weightedSum
+//    // m_layers[i].output = activFunc(matrixAdd(matrixMulti(input, m_layers[i].weights), m_layers[i].bias));
+
+//    // Propergate input layer
+//    m_layers[0].weightedSum = (m_layers[0].weights * input) + m_layers[0].bias;
+//    m_layers[0].output = m_layerActivFunc[0].ptr(m_layers[0].weightedSum, this);
+
+//    for (unsigned i = 1; i < m_layers.size(); ++i) {
+//        // Propergate hidden and output layers
+//        m_layers[i].weightedSum = (m_layers[i].weights * m_layers[i - 1].output) + m_layers[i].bias;
+//        m_layers[i].output = m_layerActivFunc[i].ptr(m_layers[i].weightedSum, this);
+//    }
+
+//    if (m_softMax) {
+//        softMax(m_layers.back().output);
+//    }
+//}
+
+void NeuralNet::propergate(Vector input)
 {
     if (input.size() != m_sizeVec[0]) {
         THROW_ERROR("Invalid input size: "
@@ -109,33 +136,32 @@ void NeuralNet::propergate(real_vec input)
     }
 }
 
-real NeuralNet::train(real_matrix input, real_matrix target)
+real NeuralNet::train(Matrix input, Matrix target)
 {
     // Check sizes
-    if (input.size() != target.size()) {
-        THROW_ERROR("Invalid size of target vector: "
-                    << input.size()
-                    << ", Expected: "
+    if (input.rows() != target.rows()) {
+        THROW_ERROR("Input and Target matricies must have equal number of rows.\n"
+                    << input.rows()
+                    << " != "
+                    << target.rows());
+    }
+
+    if (input.cols() != m_sizeVec.front()) {
+        THROW_ERROR("Number of cols in input matrix must equal number of input neurons.\n"
+                    << input.cols()
+                    << " != "
                     << m_sizeVec.front());
     }
 
-    for (size_t i = 0; i < input.size(); ++i) {
-        if (input[i].size() != m_sizeVec.front()) {
-            THROW_ERROR("Invalid size of input vector: "
-                        << input[i].size()
-                        << ", Expected: "
-                        << m_sizeVec.front());
-        }
+    if (target.cols() != m_sizeVec.back()) {
+        THROW_ERROR("Number of cols in target matrix must equal number of output neurons.\n"
+                    << input.cols()
+                    << " != "
+                    << m_sizeVec.front());
     }
 
-    for (size_t i = 0; i < target.size(); ++i) {
-        if (target[i].size() != m_sizeVec.back()) {
-            THROW_ERROR("Invalid size of target vector: "
-                        << target[i].size()
-                        << ", Expected: "
-                        << m_sizeVec.back());
-        }
-    }
+    // Number of training samples
+    size_t nSamples = input.rows();
 
     // Number of epochs
     for (size_t epoch = 0; epoch < m_nEpochs; ++epoch) {
@@ -149,32 +175,32 @@ real NeuralNet::train(real_matrix input, real_matrix target)
 
         // Loop training set
         size_t inputIdx = 0;
-        while (inputIdx < input.size()) {
+        while (inputIdx < nSamples) {
 
 
             // Training batch
-            size_t batchMax = std::min(inputIdx + m_batchSize, input.size());
+            size_t batchMax = std::min(inputIdx + m_batchSize, nSamples);
 
             Vector error(m_layers.back().size(), 1);
 
             Vector avg_error(m_layers.back().size(), 0.0);
 
-            Vector avg_input(input.front().size(), 0.0);
+            Vector avg_input(m_sizeVec.front(), 0.0);
 
             for (size_t batchIdx = inputIdx; batchIdx < batchMax; ++batchIdx) {
 
                 // Propergate input vector
-                propergate(input[batchIdx]);
+                propergate(input.row(batchIdx));
 
                 // Calc error vector, average over batch
-                error = m_costFunc.ptr(m_layers.back().output, target[batchIdx], this);
+                error = m_costFunc.ptr(m_layers.back().output, target.row(batchIdx), this);
 
                 // Save error to get average
                 // Note: avg_error.size() == output.size() == target.size()
                 avg_error += error;
 
                 // Average input
-                avg_input += input[batchIdx];
+                avg_input += input.row(batchIdx);
 
 //                if ((batchIdx % 10) == 0) {
 //                    std::cout << "0" << std::endl;
@@ -210,7 +236,7 @@ real NeuralNet::train(real_matrix input, real_matrix target)
 
                 // Print
                 if ((batchIdx % m_printInterval) == 0) {
-                    printState(input[batchIdx], target[batchIdx], error, batchIdx);
+                    printState(input.row(batchIdx), target.row(batchIdx), error, batchIdx);
                 }
             }
 
@@ -232,6 +258,130 @@ real NeuralNet::train(real_matrix input, real_matrix target)
 
     return 0;
 }
+
+//real NeuralNet::train(real_matrix input, real_matrix target)
+//{
+//    // Check sizes
+//    if (input.size() != target.size()) {
+//        THROW_ERROR("Invalid size of target vector: "
+//                    << input.size()
+//                    << ", Expected: "
+//                    << m_sizeVec.front());
+//    }
+
+//    for (size_t i = 0; i < input.size(); ++i) {
+//        if (input[i].size() != m_sizeVec.front()) {
+//            THROW_ERROR("Invalid size of input vector: "
+//                        << input[i].size()
+//                        << ", Expected: "
+//                        << m_sizeVec.front());
+//        }
+//    }
+
+//    for (size_t i = 0; i < target.size(); ++i) {
+//        if (target[i].size() != m_sizeVec.back()) {
+//            THROW_ERROR("Invalid size of target vector: "
+//                        << target[i].size()
+//                        << ", Expected: "
+//                        << m_sizeVec.back());
+//        }
+//    }
+
+//    // Number of epochs
+//    for (size_t epoch = 0; epoch < m_nEpochs; ++epoch) {
+
+
+//        // Change print interval at last epoch
+//        if (epoch == (m_nEpochs - 1)) {
+//            m_printInterval = 500;
+//        }
+
+
+//        // Loop training set
+//        size_t inputIdx = 0;
+//        while (inputIdx < input.size()) {
+
+
+//            // Training batch
+//            size_t batchMax = std::min(inputIdx + m_batchSize, input.size());
+
+//            Vector error(m_layers.back().size(), 1);
+
+//            Vector avg_error(m_layers.back().size(), 0.0);
+
+//            Vector avg_input(input.front().size(), 0.0);
+
+//            for (size_t batchIdx = inputIdx; batchIdx < batchMax; ++batchIdx) {
+
+//                // Propergate input vector
+//                propergate(input[batchIdx]);
+
+//                // Calc error vector, average over batch
+//                error = m_costFunc.ptr(m_layers.back().output, target[batchIdx], this);
+
+//                // Save error to get average
+//                // Note: avg_error.size() == output.size() == target.size()
+//                avg_error += error;
+
+//                // Average input
+//                avg_input += input[batchIdx];
+
+////                if ((batchIdx % 10) == 0) {
+////                    std::cout << "0" << std::endl;
+////                }
+
+////                if ((batchIdx % 100) == 0) {
+////                    std::cout << "00" << std::endl;
+////                }
+
+////                if ((batchIdx % 1000) == 0) {
+////                    std::cout << "00" << std::endl;
+////                }
+
+////                if ((batchIdx % 4000) == 0) {
+////                    std::cout << "00" << std::endl;
+////                }
+
+////                if ((batchIdx % 9000) == 0) {
+////                    std::cout << "a" << std::endl;
+////                }
+
+////                if ((batchIdx % 9500) == 0) {
+////                    std::cout << "b" << std::endl;
+////                }
+
+////                if ((batchIdx % 9900) == 0) {
+////                    std::cout << "c" << std::endl;
+////                }
+
+////                if ((batchIdx % 9999) == 0) {
+////                    std::cout << "d" << std::endl;
+////                }
+
+//                // Print
+//                if ((batchIdx % m_printInterval) == 0) {
+//                    printState(input[batchIdx], target[batchIdx], error, batchIdx);
+//                }
+//            }
+
+
+//            // Divide to get avgerages
+//            size_t nSamples = batchMax - inputIdx;
+//            avg_error /= nSamples;
+//            avg_input /= nSamples;
+
+
+//            // Optimize on avg_error
+//            m_optFunc.ptr(avg_input, avg_error, this);
+
+
+//            // Update index
+//            inputIdx += m_batchSize;
+//        }
+//    }
+
+//    return 0;
+//}
 
 //void NeuralNet::backpropergate(real_vec input, real_vec error)
 //{

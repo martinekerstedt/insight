@@ -425,6 +425,28 @@ const real& Matrix::operator()(const unsigned& idx) const
     return m_vec[idx];
 }
 
+Vector Matrix::row(const unsigned& row)
+{
+    Vector vec(m_cols);
+
+    for (unsigned i = 0; i < m_cols; ++i) {
+        vec(i) = m_vec[row*m_cols + i];
+    }
+
+    return vec;
+}
+
+Vector Matrix::col(const unsigned& col)
+{
+    Vector vec(m_rows);
+
+    for (unsigned i = 0; i < m_rows; ++i) {
+        vec(i) = m_vec[i*m_cols + col];
+    }
+
+    return vec;
+}
+
 // Modifiers
 void Matrix::addRow(const Vector& row)
 {

@@ -11,34 +11,13 @@ class MNIST
 public:
     MNIST() {}
 
-    void print_image(real_matrix image)
-    {
-        for (size_t i = 0; i < image.size(); ++i) {
-
-            for (size_t j = 0; j < image[i].size(); ++j) {
-
-                real val = image[i][j];
-
-                if (val > 99) {
-                    std::cout << val << " ";
-                } else if (val > 9) {
-                    std::cout << val << "  ";
-                } else {
-                    std::cout << val << "   ";
-                }
-            }
-
-            std::cout << std::endl;
-        }
-    }
-
-//    void print_image(Matrix image)
+//    void print_image(real_matrix image)
 //    {
-//        for (size_t i = 0; i < image.rows(); ++i) {
+//        for (size_t i = 0; i < image.size(); ++i) {
 
-//            for (size_t j = 0; j < image.cols(); ++j) {
+//            for (size_t j = 0; j < image[i].size(); ++j) {
 
-//                real val = image(i,j);
+//                real val = image[i][j];
 
 //                if (val > 99) {
 //                    std::cout << val << " ";
@@ -53,32 +32,28 @@ public:
 //        }
 //    }
 
-    real_vec read_label_file(std::string filePath)
+    void print_image(Matrix image)
     {
-        char *mem_ptr = read_mnist_file(filePath);
+        for (size_t i = 0; i < image.rows(); ++i) {
 
-        // File type and size
-        unsigned int magic_number = ((unsigned int*)mem_ptr)[0];
-        unsigned int number_of_items = ((unsigned int*)mem_ptr)[1];
+            for (size_t j = 0; j < image.cols(); ++j) {
 
-        if (magic_number != 2049) {
-            delete[] mem_ptr;
-            THROW_ERROR("Invalid magic_number: " + std::to_string(magic_number));
+                real val = image(i,j);
+
+                if (val > 99) {
+                    std::cout << val << " ";
+                } else if (val > 9) {
+                    std::cout << val << "  ";
+                } else {
+                    std::cout << val << "   ";
+                }
+            }
+
+            std::cout << std::endl;
         }
-
-        real_vec vec;
-        vec.reserve(number_of_items);
-
-        for (unsigned int i = 8; i < number_of_items + 8; ++i) {
-            vec.push_back((unsigned int)mem_ptr[i]);
-        }
-
-        delete[] mem_ptr;
-
-        return vec;
     }
 
-//    Vector read_label_file(std::string filePath)
+//    real_vec read_label_file(std::string filePath)
 //    {
 //        char *mem_ptr = read_mnist_file(filePath);
 
@@ -91,11 +66,11 @@ public:
 //            THROW_ERROR("Invalid magic_number: " + std::to_string(magic_number));
 //        }
 
-//        Vector vec;
+//        real_vec vec;
 //        vec.reserve(number_of_items);
 
 //        for (unsigned int i = 8; i < number_of_items + 8; ++i) {
-//            vec.pushBack((unsigned int)mem_ptr[i]);
+//            vec.push_back((unsigned int)mem_ptr[i]);
 //        }
 
 //        delete[] mem_ptr;
@@ -103,51 +78,32 @@ public:
 //        return vec;
 //    }
 
-    std::vector<real_matrix> read_image_file(std::string filePath)
+    Vector read_label_file(std::string filePath)
     {
         char *mem_ptr = read_mnist_file(filePath);
 
         // File type and size
         unsigned int magic_number = ((unsigned int*)mem_ptr)[0];
-        unsigned int number_of_images = ((unsigned int*)mem_ptr)[1];
-        unsigned int number_of_rows = ((unsigned int*)mem_ptr)[2];
-        unsigned int number_of_cols = ((unsigned int*)mem_ptr)[3];
+        unsigned int number_of_items = ((unsigned int*)mem_ptr)[1];
 
-        if (magic_number != 2051) {
+        if (magic_number != 2049) {
             delete[] mem_ptr;
             THROW_ERROR("Invalid magic_number: " + std::to_string(magic_number));
         }
 
-        std::vector<real_matrix> image_vec;
-        image_vec.reserve(number_of_images);
+        Vector vec;
+        vec.reserve(number_of_items);
 
-        for (unsigned int i = 0; i < number_of_images; ++i) {
-
-            real_matrix image;
-
-            for (unsigned int j = 0; j < number_of_rows; ++j) {
-
-                real_vec row;
-                row.reserve(number_of_cols);
-
-                for (unsigned int k = 0; k < number_of_cols; ++k) {
-
-                    unsigned int mem_index = (i*number_of_rows*number_of_cols) + (j*number_of_cols) + k + 16;
-                    row.push_back((unsigned char)mem_ptr[mem_index]);
-                }
-
-                image.push_back(row);
-            }
-
-            image_vec.push_back(image);
+        for (unsigned int i = 8; i < number_of_items + 8; ++i) {
+            vec.pushBack((unsigned int)mem_ptr[i]);
         }
 
         delete[] mem_ptr;
 
-        return image_vec;
+        return vec;
     }
 
-//    Matrix read_image_file(std::string filePath)
+//    std::vector<real_matrix> read_image_file(std::string filePath)
 //    {
 //        char *mem_ptr = read_mnist_file(filePath);
 
@@ -162,29 +118,74 @@ public:
 //            THROW_ERROR("Invalid magic_number: " + std::to_string(magic_number));
 //        }
 
-
-//        Matrix images_mat(number_of_images, number_of_rows*number_of_cols);
+//        std::vector<real_matrix> image_vec;
+//        image_vec.reserve(number_of_images);
 
 //        for (unsigned int i = 0; i < number_of_images; ++i) {
 
-//            Vector image(number_of_rows*number_of_cols);
+//            real_matrix image;
 
 //            for (unsigned int j = 0; j < number_of_rows; ++j) {
+
+//                real_vec row;
+//                row.reserve(number_of_cols);
+
 //                for (unsigned int k = 0; k < number_of_cols; ++k) {
 
 //                    unsigned int mem_index = (i*number_of_rows*number_of_cols) + (j*number_of_cols) + k + 16;
-//                    image.pushBack((unsigned char)mem_ptr[mem_index]);
+//                    row.push_back((unsigned char)mem_ptr[mem_index]);
 //                }
 
+//                image.push_back(row);
 //            }
 
-//            images_mat.addRow(image);
+//            image_vec.push_back(image);
 //        }
 
 //        delete[] mem_ptr;
 
-//        return images_mat;
+//        return image_vec;
 //    }
+
+    Matrix read_image_file(std::string filePath)
+    {
+        char *mem_ptr = read_mnist_file(filePath);
+
+        // File type and size
+        unsigned int magic_number = ((unsigned int*)mem_ptr)[0];
+        unsigned int number_of_images = ((unsigned int*)mem_ptr)[1];
+        unsigned int number_of_rows = ((unsigned int*)mem_ptr)[2];
+        unsigned int number_of_cols = ((unsigned int*)mem_ptr)[3];
+
+        if (magic_number != 2051) {
+            delete[] mem_ptr;
+            THROW_ERROR("Invalid magic_number: " + std::to_string(magic_number));
+        }
+
+
+        Matrix images_mat(0, number_of_rows*number_of_cols);
+
+        for (unsigned int i = 0; i < number_of_images; ++i) {
+
+            Vector image;
+            image.reserve(number_of_rows*number_of_cols);
+
+            for (unsigned int j = 0; j < number_of_rows; ++j) {
+                for (unsigned int k = 0; k < number_of_cols; ++k) {
+
+                    unsigned int mem_index = (i*number_of_rows*number_of_cols) + (j*number_of_cols) + k + 16;
+                    image.pushBack((unsigned char)mem_ptr[mem_index]);
+                }
+
+            }
+
+            images_mat.addRow(image);
+        }
+
+        delete[] mem_ptr;
+
+        return images_mat;
+    }
 
 private:
     void swapByteOrder(unsigned int& ui)

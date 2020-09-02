@@ -57,9 +57,13 @@ public:
     const real& operator()(const unsigned& row, const unsigned& col) const;     // vec: delete
     const real& operator()(const unsigned& idx) const;                          // vec: exactly same
 
+    Vector row(const unsigned& row);
+    Vector col(const unsigned& row);
+
     // Modify
+    // Need difference between add new row and edit exisiting row
     void addRow(const Vector& row);                                             // vec: delete
-    void addCol(const Vector& col);                                             // vec: delete
+    void addCol(const Vector& col);                                             // vec: delete        
 
     // Utility
     std::string num2str(real num);                                              // vec: exactly same
@@ -73,6 +77,7 @@ protected:
 };
 
 #endif // MATRIX_H
+
 
 
 
