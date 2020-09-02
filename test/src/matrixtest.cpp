@@ -1,36 +1,53 @@
 #include "gtest/gtest.h"
 #include <NeuralNet/matrix.h>
+#include <NeuralNet/vector.h>
 
 #define MAT_1_ROWS  4
 #define MAT_1_COLS  MAT_1_ROWS
 #define MAT_1       {29.9549, -27.7233, 9.8444, 0.0000,     \
                     -14.3950, 0.4060, 1.0000, 23.1001,      \
                     -43.4291, -61.8100, 46.6723, 99.4774,   \
-                    -0.2372, 3.5356, 0.0000, 13.7367}       \
+                    -0.2372, 3.5356, 0.0000, 13.7367}
 
 #define MAT_2_ROWS  MAT_1_ROWS
 #define MAT_2_COLS  MAT_1_ROWS
 #define MAT_2       {0.7910, 1.0000, 0.0000, 0.0000,        \
                     -49.8921, 38.0787, 85.0372, -94.1333,   \
                     0.0000, -7.3645, 5.1755, 72.6610,       \
-                    -70.6235, -0.5607, 25.5225, 0.2726}     \
+                    -70.6235, -0.5607, 25.5225, 0.2726}
 
 #define MAT_3_ROWS  MAT_1_ROWS
 #define MAT_3_COLS  3
 #define MAT_3       {1.0000, 37.1144, -60.3302,             \
                     48.3185, 0.0000, 67.2406,               \
                     -17.9724, -45.6317, -39.2747,           \
-                    0.0000, 11.8273, -0.3022}               \
+                    0.0000, 11.8273, -0.3022}
 
-#define MAT_4_ROWS  MAT_1_ROWS
-#define MAT_4_COLS  2
-#define MAT_4       {-55.0691, 70.3193,                     \
-                    78.9596, 0.0003,                        \
-                    0.0000, 1.0007,                         \
-                    56.8628, -81.3967}                      \
+#define MAT_4_ROWS  1
+#define MAT_4_COLS  MAT_1_ROWS
+#define MAT_4       {-55.0691, 70.3193, 78.9596, 0.0003}
 
 #define VEC_1_SIZE  MAT_1_ROWS
-#define VEC_1       {0.9549, -50.9924, 0.0000, 29.9549}
+#define VEC_1       {0.9549,                                \
+                    -50.9924,                               \
+                    0.0000,                                 \
+                    29.9549}
+
+
+testing::AssertionResult equal_matricies(Matrix mat1, Matrix mat2)
+{
+    std::string mat1_str = mat1.str();
+    std::string mat2_str = mat2.str();
+
+
+    if (mat1_str == mat2_str) {
+        return testing::AssertionSuccess();
+    } else {
+        return testing::AssertionFailure() << "\n\nExpected:\n" << mat1_str
+                                           << "\nBut got:\n" << mat2_str
+                                           << std::endl;
+    }
+}
 
 
 // Constructors
@@ -66,9 +83,7 @@ TEST(MatrixConstructor, RowsColsAndInitVal)
 
 TEST(MatrixConstructor, RowsColsAndInitVector)
 {
-    Vector vec;
-    vec = MAT_1;
-
+    Vector vec(MAT_1);
     Matrix mat(MAT_1_ROWS, MAT_1_COLS, vec);
 
     EXPECT_EQ(mat.rows(), MAT_1_ROWS);
@@ -82,8 +97,7 @@ TEST(MatrixConstructor, RowsColsAndInitVector)
 
 TEST(MatrixConstructor, RowsColsAndInitStdVector)
 {
-    std::vector<real> vec = MAT_1;
-
+    std::vector<real> vec(MAT_1);
     Matrix mat(MAT_1_ROWS, MAT_1_COLS, vec);
 
     EXPECT_EQ(mat.rows(), MAT_1_ROWS);
@@ -95,50 +109,65 @@ TEST(MatrixConstructor, RowsColsAndInitStdVector)
     }
 }
 
-TEST(MatrixConstructor, CopyMatrix)
+TEST(MatrixConstructor, RowsColsAndInitializerList)
 {
-    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    std::vector<real> vec(MAT_1);
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
 
-    Matrix mat2(mat1);
-
-    EXPECT_EQ(mat1.rows(), mat2.rows());
-    EXPECT_EQ(mat1.cols(), mat2.cols());
-    EXPECT_EQ(mat1.vec().size(), mat2.vec().size());
-
-    for (unsigned i = 0; i < mat1.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat1(i), mat2(i));
-    }
-}
-
-TEST(MatrixConstructor, CopyVector)
-{
-    Vector vec;
-    vec = MAT_1;
-
-    Matrix mat(vec);
-
-    EXPECT_EQ(mat.rows(), vec.size());
-    EXPECT_EQ(mat.cols(), 1);
-    EXPECT_EQ(mat.vec().size(), vec.size());
-
-    for (unsigned i = 0; i < mat.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat(i), vec(i));
-    }
-}
-
-TEST(MatrixConstructor, CopyStdVector)
-{
-    std::vector<real> vec = MAT_1;
-
-    Matrix mat(vec);
-
-    EXPECT_EQ(mat.rows(), vec.size());
-    EXPECT_EQ(mat.cols(), 1);
-    EXPECT_EQ(mat.vec().size(), vec.size());
+    EXPECT_EQ(mat.rows(), MAT_1_ROWS);
+    EXPECT_EQ(mat.cols(), MAT_1_COLS);
+    EXPECT_EQ(mat.vec().size(), MAT_1_ROWS*MAT_1_COLS);
 
     for (unsigned i = 0; i < mat.size(); ++i) {
         EXPECT_FLOAT_EQ(mat(i), vec[i]);
     }
+}
+
+// Copy constructor
+TEST(MatrixCopyConstructor, Matrix)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2(mat1);
+
+    EXPECT_TRUE(equal_matricies(mat1, mat2));
+}
+
+TEST(MatrixCopyConstructor, Vector)
+{
+    Vector vec(MAT_1);
+    Matrix mat(vec);
+
+    EXPECT_TRUE(equal_matricies(mat, vec));
+}
+
+TEST(MatrixCopyConstructor, StdVector)
+{
+    std::vector<real> vec(MAT_1);
+    Matrix mat(vec);
+
+    // vec == mat not possible, cannot edit std::vector class
+    EXPECT_TRUE(equal_matricies(mat, vec));
+}
+
+TEST(MatrixCopyConstructor, InitializerList)
+{
+    std::vector<real> vec(MAT_1);
+    Matrix mat(MAT_1);
+
+    EXPECT_TRUE(equal_matricies(mat, vec));
+}
+
+TEST(MatrixCopyConstructor, InitializerRowList)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2({
+                   {29.9549, -27.7233, 9.8444, 0.0000},
+                   {-14.3950, 0.4060, 1.0000, 23.1001},
+                   {-43.4291, -61.8100, 46.6723, 99.4774},
+                   {-0.2372, 3.5356, 0.0000, 13.7367}
+               });
+
+    EXPECT_TRUE(equal_matricies(mat1, mat2));
 }
 
 // Assignment operator
@@ -149,60 +178,62 @@ TEST(MatrixAssignment, Matrix)
     Matrix mat2;
     mat2 = mat1;
 
-
-    EXPECT_EQ(mat1.rows(), mat2.rows());
-    EXPECT_EQ(mat1.cols(), mat2.cols());
-    EXPECT_EQ(mat1.vec().size(), mat2.vec().size());
-
-    for (unsigned i = 0; i < mat1.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat1(i), mat2(i));
-    }
+    EXPECT_TRUE(equal_matricies(mat1, mat2));
 }
 
 TEST(MatrixAssignment, Vector)
 {
-    Vector vec;
-    vec = MAT_1;
+    Vector vec(MAT_1);
 
     Matrix mat;
     mat = vec;
 
-    EXPECT_EQ(mat.rows(), vec.size());
-    EXPECT_EQ(mat.cols(), 1);
-    EXPECT_EQ(mat.vec().size(), vec.size());
-
-    for (unsigned i = 0; i < mat.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat(i), vec(i));
-    }
+    EXPECT_TRUE(equal_matricies(mat, vec));
 }
 
 TEST(MatrixAssignment, StdVector)
 {
-    std::vector<real> vec = MAT_1;
+    std::vector<real> vec(MAT_1);
 
     Matrix mat;
     mat = vec;
 
-    EXPECT_EQ(mat.rows(), vec.size());
-    EXPECT_EQ(mat.cols(), 1);
-    EXPECT_EQ(mat.vec().size(), vec.size());
+    EXPECT_TRUE(equal_matricies(mat, vec));
+}
 
-    for (unsigned i = 0; i < mat.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat(i), vec[i]);
-    }
+TEST(MatrixAssignment, InitializerList)
+{
+    std::vector<real> vec(MAT_1);
+    Matrix mat;
+    mat = MAT_1;
+
+    EXPECT_TRUE(equal_matricies(mat, vec));
+}
+
+TEST(MatrixAssignment, InitializerRowList)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2;
+    mat2 = {
+        {29.9549, -27.7233, 9.8444, 0.0000},
+        {-14.3950, 0.4060, 1.0000, 23.1001},
+        {-43.4291, -61.8100, 46.6723, 99.4774},
+        {-0.2372, 3.5356, 0.0000, 13.7367}
+    };
+
+    EXPECT_TRUE(equal_matricies(mat1, mat2));
 }
 
 // Matrix/Matrix operators
 TEST(MatrixMatrixOperators, Equallity)
 {
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Matrix mat2(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Matrix mat3(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-    ASSERT_TRUE(mat1 == mat2);
-    ASSERT_FALSE(mat1 != mat2);
-    ASSERT_TRUE(mat1 != mat3);
-    ASSERT_FALSE(mat1 == mat3);
+    ASSERT_TRUE(mat1 == mat1);
+    ASSERT_FALSE(mat1 != mat1);
+    ASSERT_TRUE(mat1 != mat2);
+    ASSERT_FALSE(mat1 == mat2);
 }
 
 TEST(MatrixMatrixOperators, Addition)
@@ -215,7 +246,7 @@ TEST(MatrixMatrixOperators, Addition)
                                -43.4291, -69.1745, 51.8478, 172.1384,
                                -70.8607, 2.9749, 25.5225, 14.0093});
 
-    EXPECT_TRUE(expected_mat == (mat1 + mat2));
+    EXPECT_TRUE(equal_matricies(expected_mat, (mat1 + mat2)));
 }
 
 TEST(MatrixMatrixOperators, Subtraction)
@@ -228,20 +259,46 @@ TEST(MatrixMatrixOperators, Subtraction)
                                -43.4291, -54.4455, 41.4968, 26.8164,
                                70.3863, 4.0963, -25.5225, 13.4641});
 
-    EXPECT_TRUE(expected_mat == (mat1 - mat2));
+    EXPECT_TRUE(equal_matricies(expected_mat, (mat1 - mat2)));
 }
 
 TEST(MatrixMatrixOperators, Multiplication)
 {
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+    Matrix mat3(MAT_4_ROWS, MAT_4_COLS, MAT_4);
+    Vector vec(VEC_1);
 
-    Matrix expected_mat(4, 4, {1406.8680, -1098.2114, -2306.5621, 3324.9897,
+    Matrix expected_mat1(4, 4, {1406.8680, -1098.2114, -2306.5621, 3324.9897,
                                -1663.0525, -19.2518, 629.2729, 40.7400,
                                -3975.9639, -2796.5687, -2475.6849, 9236.7528,
                                -1146.7200, 126.6917, 651.2525, -329.0731});
 
-    EXPECT_TRUE(expected_mat == mat1 * mat2);
+    EXPECT_TRUE(equal_matricies(expected_mat1, (mat1 * mat2)));
+
+//    -52.5855	float
+//	67.1479	float
+//	75.3985	float
+//	0.00028647	float
+//	2808.11	float
+//	-3585.75	float
+//	-4026.34	float
+//	-0.0152977	float
+//	0	float
+//	0	float
+//	0	float
+//	0	float
+//	-1649.59	float
+//	2106.41	float
+//	2365.23	float
+//	0.00898647	float
+
+    Matrix expected_mat2(4, 4, {-52.5855, 67.1479, 75.3985, 0.0003,
+                                2808.1056, -3585.7399, -4026.3395, -0.0153,
+                                0.0000, 0.0000, 0.0000, 0.0000,
+                                -1649.5894, 2106.4076, 2365.2269, 0.0090});
+
+    EXPECT_TRUE(equal_matricies(expected_mat2, (vec * mat3)));
 }
 
 TEST(MatrixMatrixOperators, CumulativeAddition)
@@ -252,7 +309,7 @@ TEST(MatrixMatrixOperators, CumulativeAddition)
     Matrix mat3 = mat1;
     mat1 += mat2;
 
-    EXPECT_TRUE(mat1 == (mat3 + mat2));
+    EXPECT_TRUE(equal_matricies(mat1, (mat3 + mat2)));
 }
 
 TEST(MatrixMatrixOperators, CumulativeSubtraction)
@@ -263,7 +320,7 @@ TEST(MatrixMatrixOperators, CumulativeSubtraction)
     Matrix mat3 = mat1;
     mat1 -= mat2;
 
-    EXPECT_TRUE(mat1 == (mat3 - mat2));
+    EXPECT_TRUE(equal_matricies(mat1, (mat3 - mat2)));
 }
 
 TEST(MatrixMatrixOperators, CumulativeMultiplication)
@@ -274,7 +331,7 @@ TEST(MatrixMatrixOperators, CumulativeMultiplication)
     Matrix mat3 = mat1;
     mat1 *= mat2;
 
-    EXPECT_TRUE(mat1 == (mat3 * mat2));
+    EXPECT_TRUE(equal_matricies(mat1, (mat3 * mat2)));
 }
 
 // Matrix/Vector operators
@@ -296,114 +353,9 @@ TEST(MatrixVectorOperators, Multiplication)
     Vector vec(VEC_1);
 
     Vector expected_vec({1442.2815, 657.5125, 6090.2054, 230.9662});
+    Vector res_vec = (mat * vec);
 
-    EXPECT_TRUE(expected_vec == (mat * vec));
-}
-
-TEST(MatrixVectorOperators, RowWiseAddition)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {30.9098, -26.7684, 10.7993, 0.9549,
-                                                 -65.3874, -50.5864, -49.9924, -27.8923,
-                                                 -43.4291, -61.8100, 46.6723, 99.4774,
-                                                 29.7177, 33.4905, 29.9549, 43.6916});
-
-    EXPECT_TRUE(expected_mat == mat.addRowWise(vec));
-}
-
-TEST(MatrixVectorOperators, ColWiseAddition)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {30.9098, -78.7157, 9.8444, 29.9549,
-                                                 -13.4401, -50.5864, 1.0000, 53.0550,
-                                                 -42.4742, -112.8024, 46.6723, 129.4323,
-                                                 0.7177, -47.4568, 0.0000, 43.6916});
-
-    EXPECT_TRUE(expected_mat == mat.addColWise(vec));
-}
-
-TEST(MatrixVectorOperators, RowWiseSubtraction)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {29.0000, -28.6782, 8.8895, -0.9549,
-                                                 36.5974 ,51.3984, 51.9924, 74.0925,
-                                                 -43.4291, -61.8100, 46.6723, 99.4774,
-                                                 -30.1921, -26.4193, -29.9549, -16.2182});
-
-    EXPECT_TRUE(expected_mat == mat.subtractRowWise(vec));
-}
-
-TEST(MatrixVectorOperators, ColWiseSubtraction)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {29.0000, 23.2691, 9.8444, -29.9549,
-                                                 -15.3499, 51.3984, 1.0000, -6.8548,
-                                                 -44.3840, -10.8176, 46.6723, 69.5225,
-                                                 -1.1921, 54.5280, 0.0000, -16.2182});
-
-    EXPECT_TRUE(expected_mat == mat.subtractColWise(vec));
-}
-
-TEST(MatrixVectorOperators, RowWiseMultiplication)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {28.6039, -26.4730, 9.4004, 0.0000,
-                                                 734.0356, -20.7029, -50.9924, -1177.9295,
-                                                 -0.0000, -0.0000, 0.0000, 0.0000,
-                                                 -7.1053, 105.9085, 0.0000, 411.4815});
-
-    EXPECT_TRUE(expected_mat == mat.multiplyRowWise(vec));
-}
-
-TEST(MatrixVectorOperators, ColWiseMultiplication)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {28.6039, 1413.6776, 0.0000, 0.0000,
-                                                 -13.7458, -20.7029, 0.0000, 691.9612,
-                                                 -41.4704, 3151.8402, 0.0000, 2979.8356,
-                                                 -0.2265, -180.2887, 0.0000, 411.4815});
-
-    EXPECT_TRUE(expected_mat == mat.multiplyColWise(vec));
-}
-
-TEST(MatrixVectorOperators, RowWiseDivision)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-    vec(2) = 1.0000; // Avoid division with zero
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {31.3697, -29.0327, 10.3094, 0.0000,
-                                                 0.2823, -0.0080, -0.0196, -0.4530,
-                                                 -43.4291, -61.8100, 46.6723, 99.4774,
-                                                 -0.0079, 0.1180, 0.0000, 0.4586});
-
-    EXPECT_TRUE(expected_mat == mat.divideRowWise(vec));
-}
-
-TEST(MatrixVectorOperators, ColWiseDivision)
-{
-    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Vector vec(VEC_1);
-    vec(2) = 1.0000; // Avoid division with zero
-
-    Matrix expected_mat(MAT_1_ROWS, MAT_1_COLS, {31.3697, 0.5437, 9.8444, 0.0000,
-                                                 -15.0749, -0.0080, 1.0000, 0.7712,
-                                                 -45.4803, 1.2121, 46.6723, 3.3209,
-                                                 -0.2484, -0.0693, 0.0000, 0.4586});
-
-    EXPECT_TRUE(expected_mat == mat.divideColWise(vec));
+    EXPECT_TRUE(equal_matricies(expected_vec, res_vec));
 }
 
 // Matrix/std::vector operators
@@ -426,7 +378,7 @@ TEST(MatrixStdVectorOperators, Multiplication)
 
     Vector expected_vec({1442.2815, 657.5125, 6090.2054, 230.9662});
 
-    EXPECT_TRUE(expected_vec == (mat * vec));
+    EXPECT_TRUE(equal_matricies(expected_vec, (mat * vec)));
 }
 
 // Matrix/scalar operators
@@ -486,7 +438,7 @@ TEST(MatrixScalarOperators, CumulativeAddition)
     Matrix mat2 = mat1;
     mat1 += val;
 
-    EXPECT_TRUE(mat1 == mat2 + val);
+    EXPECT_TRUE(equal_matricies(mat1, mat2 + val));
 }
 
 TEST(MatrixScalarOperators, CumulativeSubtraction)
@@ -497,7 +449,7 @@ TEST(MatrixScalarOperators, CumulativeSubtraction)
     Matrix mat2 = mat1;
     mat1 -= val;
 
-    EXPECT_TRUE(mat1 == mat2 - val);
+    EXPECT_TRUE(equal_matricies(mat1, mat2 - val));
 }
 
 TEST(MatrixScalarOperators, CumulativeMultiplication)
@@ -508,7 +460,7 @@ TEST(MatrixScalarOperators, CumulativeMultiplication)
     Matrix mat2 = mat1;
     mat1 *= val;
 
-    EXPECT_TRUE(mat1 == mat2 * val);
+    EXPECT_TRUE(equal_matricies(mat1, mat2 * val));
 }
 
 TEST(MatrixScalarOperators, CumulativeDivision)
@@ -519,7 +471,7 @@ TEST(MatrixScalarOperators, CumulativeDivision)
     Matrix mat2 = mat1;
     mat1 /= val;
 
-    EXPECT_TRUE(mat1 == mat2 / val);
+    EXPECT_TRUE(equal_matricies(mat1, mat2 / val));
 }
 
 // Matrix operators
@@ -532,34 +484,214 @@ TEST(MatrixOperators, Transpose)
                                                 9.8444, 1.0000, 46.6723, 0.0000,
                                                 0.0000, 23.1001, 99.4774, 13.7367});
 
-    EXPECT_TRUE(expected_mat == mat.transpose());
+    EXPECT_TRUE(equal_matricies(expected_mat, mat.transpose()));
 }
 
-TEST(MatrixOperators, ElementWiseSubtraction)
-{
-    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+//TEST(MatrixOperators, ElementWiseSubtraction)
+//{
+//    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+//    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-    Matrix mat3 = mat1.subtractElemWise(mat2);
+//    Matrix mat3 = mat1;
+//    mat1.subtractElemWise(mat2);
 
-    for (unsigned i = 0; i < mat1.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat3(i), mat1(i) - mat2(i));
-    }
-}
+//    for (unsigned i = 0; i < mat1.size(); ++i) {
+//        EXPECT_FLOAT_EQ(mat1(i), mat3(i) - mat2(i));
+//    }
+//}
 
 TEST(MatrixOperators, ElementWiseMultiplication)
 {
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-    Matrix mat3 = mat1.multiplyElemWise(mat2);
+    Matrix mat3 = mat1;
+    mat1 = mat1.multiplyElemWise(mat2);
 
     for (unsigned i = 0; i < mat1.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat3(i), mat1(i) * mat2(i));
+        EXPECT_FLOAT_EQ(mat1(i), mat3(i) * mat2(i));
     }
 }
 
+// Access
+TEST(MatrixAccess, Rows)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    EXPECT_EQ(mat.rows(), MAT_1_ROWS);
+}
 
+TEST(MatrixAccess, Cols)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    EXPECT_EQ(mat.cols(), MAT_1_COLS);
+}
+
+TEST(MatrixAccess, Size)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    EXPECT_EQ(mat.size(), MAT_1_ROWS*MAT_1_COLS);
+}
+
+TEST(MatrixAccess, SubscriptParenthesesRowAndCol)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    EXPECT_FLOAT_EQ(mat(0,0), 29.9549);
+    EXPECT_FLOAT_EQ(mat(0,3), 0.0000);
+    EXPECT_FLOAT_EQ(mat(2,0), -43.4291);
+    EXPECT_FLOAT_EQ(mat(1,2), 1.0000);
+    EXPECT_FLOAT_EQ(mat(3,3), 13.7367);
+}
+
+TEST(MatrixAccess, SubscriptParenthesesIndex)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    EXPECT_FLOAT_EQ(mat(0), 29.9549);
+    EXPECT_FLOAT_EQ(mat(3), 0.0000);
+    EXPECT_FLOAT_EQ(mat(8), -43.4291);
+    EXPECT_FLOAT_EQ(mat(6), 1.0000);
+    EXPECT_FLOAT_EQ(mat(15), 13.7367);
+}
+
+// Modify
+TEST(MatrixModify, AddRow)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Vector vec(VEC_1);
+    mat.addRow(vec);
+
+    Matrix expected_mat({
+                            {29.9549, -27.7233, 9.8444, 0.0000},
+                            {-14.3950, 0.4060, 1.0000, 23.1001},
+                            {-43.4291, -61.8100, 46.6723, 99.4774},
+                            {-0.2372, 3.5356, 0.0000, 13.7367},
+                            {0.9549, -50.9924, 0.0000, 29.9549}
+                        });
+
+    EXPECT_TRUE(equal_matricies(expected_mat, mat));
+}
+
+TEST(MatrixModify, AddCol)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Vector vec(VEC_1);
+    mat.addCol(vec);
+
+    Matrix expected_mat({
+                            {29.9549, -27.7233, 9.8444, 0.0000, 0.9549},
+                            {-14.3950, 0.4060, 1.0000, 23.1001, -50.9924},
+                            {-43.4291, -61.8100, 46.6723, 99.4774, 0.0000},
+                            {-0.2372, 3.5356, 0.0000, 13.7367, 29.9549}
+                        });
+
+    EXPECT_TRUE(equal_matricies(expected_mat, mat));
+}
+
+// Utility
+TEST(MatrixUtility, ToString)
+{
+    Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+
+    std::string mat_str("[ 29.95, -27.72,  9.844,  0.000]\n"
+                        "[                              ]\n"
+                        "[-14.40,  0.406,  1.000,  23.10]\n"
+                        "[                              ]\n"
+                        "[-43.43, -61.81,  46.67,  99.48]\n"
+                        "[                              ]\n"
+                        "[-0.237,  3.536,  0.000,  13.74]\n");
+
+    ASSERT_TRUE(mat.str() == mat_str);
+}
+
+//// Construct from Matrix
+//Matrix mat11(base_mat);
+//Matrix mat12 = base_mat;
+//Matrix mat13;
+//mat13 = base_mat;
+
+//Vector vec11(base_mat);
+//Vector vec12 = base_mat;
+//Vector vec13;
+//vec13 = base_mat;
+
+//// Construct from Vector
+//Matrix mat21(base_vec);
+//Matrix mat22 = base_vec;
+//Matrix mat23;
+//mat23 = base_vec;
+
+//Vector vec21(base_vec);
+//Vector vec22 = base_vec;
+//Vector vec23;
+//vec23 = base_vec;
+
+//// Construct from std::vector
+//Matrix mat31(base_stdvec);
+//Matrix mat32 = base_stdvec;
+//Matrix mat33;
+//mat33 = base_stdvec;
+
+//Vector vec31(base_stdvec);
+//Vector vec32 = base_stdvec;
+//Vector vec33;
+//vec33 = base_stdvec;
+
+//// Construct from initializer list
+//Matrix mat41(VEC_1);
+//Matrix mat42 = VEC_1;
+//Matrix mat43;
+//mat43 = VEC_1;
+
+//Vector vec41(VEC_1);
+//Vector vec42 = VEC_1;
+//Vector vec43;
+//vec43 = VEC_1;
+
+//// Construct from initializer row list
+//Matrix mat51(ROW_LIST);
+//Matrix mat52 = ROW_LIST;
+//Matrix mat53;
+//mat53 = ROW_LIST;
+
+////    Vector vec51(ROW_LIST);
+////    Vector vec52 = ROW_LIST;
+////    Vector vec53;
+////    vec53 = ROW_LIST;
+
+//// Function call
+//Matrix mat61 = activeFuncMat(base_vec);
+//Matrix mat62 = activeFuncMat(base_mat);
+
+//Vector vec61 = activeFuncVec(base_vec);
+//Vector vec62 = activeFuncVec(base_mat);
+
+
+//// Test
+//// Always choose Mx1 * 1xN
+//// 1xM * Mx1 == a.multiplyElemWise(b).sum()
+//Matrix b1 = vec41 * vec41; // Always choose 4x1 * 1x4
+
+
+//Matrix m1(4, 4);
+//Matrix m2(4, 1);
+//Matrix m3(1, 4);
+//Vector v1(16);
+//Vector v2(4);
+
+//m1 + m1; // 4x4  + 4x4      ok
+//m1 + m2; // 4x4  + 4x1
+//m1 + m3; // 4x4  + 1x4
+//m1 + v1; // 4x4  + 16x1     ok, kolla size bara
+//m1 + v2; // 4x4  + 4x1
+//m2 + m2; // 4x1  + 4x1      ok
+//m2 + m3; // 4x1  + 1x4
+//m2 + v1; // 4x1  + 16x1
+//m2 + v2; // 4x1  + 4x1      ok
+//m3 + m3; // 1x4  + 1x4      ok
+//m3 + v1; // 1x4  + 16x1
+//m3 + v2; // 1x4  + 4x1      ok, kolla size bara
+//v1 + v1; // 16x1 + 16x1     ok, kolla size bara
+//v1 + v2; // 16x1 + 4x1
+//v2 + v2; // 4x1  + 4x1      ok, kolla size bara
 
 
 

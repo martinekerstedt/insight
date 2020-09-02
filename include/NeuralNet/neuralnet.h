@@ -3,44 +3,12 @@
 
 #include <Common/types.h>
 #include <NeuralNet/matrix.h>
+#include <NeuralNet/vector.h>
 
 // Need
 //  matrixMulti(real_vec, real_vec)
 //  matrixScale(real, real_vec)
 //  matrixElemWiseMulti(real_vec, real_vec)
-
-struct Neuron
-{
-    Neuron(size_t size)
-    {
-        weights.resize(size, 0);
-    }
-
-    real_vec weights;   
-    real bias = 0;
-    real output = 0;
-    real gradient = 0;
-    real weightedSum = 0;
-//    real weights[size];
-
-    size_t size()
-    {
-        return weights.size();
-    }
-
-    real& operator [](int i)
-    {
-        return weights[i];
-    }
-
-    real operator [](int i) const
-    {
-        return weights[i];
-    }
-};
-
-//typedef std::vector<Neuron> Layer;
-
 
 struct Layer
 {

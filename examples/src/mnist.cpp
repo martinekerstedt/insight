@@ -8,236 +8,114 @@
 
 #include <Common/mnist.h>
 
-//class Matrix2
-//{
-//public:
-//    Matrix2()
-//    {
-
-//    }
-
-//    real& operator [](int i)
-//    {
-//        return m_data[i];
-//    }
-
-//    real operator [](int i) const
-//    {
-//        return m_data[i];
-//    }
-
-//private:
-//    unsigned int m_height;
-//    unsigned int m_width;
-//    std::vector<real> m_data;
-//};
-
-//struct Layer2
-//{
-//    real_vec output;
-//    real_vec bias;
-//    real_vec gradient;
-//    real_vec weightedSum;
-//    real_matrix weights;
-
-//    size_t size()
-//    {
-//        return 8;
-//    }
-//};
-
-//std::vector<Layer2> network;
-
-//real matrixMulti(real_matrix a, real_matrix b)
-//{
-//    return 2;
-//}
-
-//real matrixMulti(real_vec a, real_vec b)
-//{
-//    return 2;
-//}
-
-//real_vec matrixMulti(real_vec a, real_matrix b)
-//{
-//    return real_vec();
-//}
-
-//real matrixMulti(real_matrix a, real_vec b)
-//{
-//    return 2;
-//}
-
-//real_vec matrixAdd(real_vec a, real_vec b)
-//{
-//    return real_vec();
-//}
-
-//real_vec matrixScale(real a, real_vec b)
-//{
-//    return real_vec();
-//}
-
-//real matrixElemWiseMulti(real_vec a, real_vec b)
-//{
-//    return 2;
-//}
-
-//real_vec activFunc(real_vec x)
-//{
-//    return x;
-//}
-
-//real activFuncDeriv(real x)
-//{
-//    return x;
-//}
-
-//real_vec propergateNetwork(real_vec input)
-//{
-//    // Propergate input layer
-//    network[0].weightedSum = matrixAdd(matrixMulti(input, network[0].weights), network[0].bias);
-//    network[0].output = activFunc(network[0].weightedSum);
-
-//    // When not training, dont need to cache weightedSum
-//    network[0].output = activFunc(matrixAdd(matrixMulti(input, network[0].weights), network[0].bias));
-
-
-//    for (unsigned int i = 1; i < network.size(); ++i) {
-//        // Propergate hidden and output layers
-//        network[i].weightedSum = matrixAdd(matrixMulti(network[i - 1].output, network[i].weights), network[i].bias);
-//        network[i].output = activFunc(network[i].weightedSum);
-
-//        // When not training, dont need to cache weightedSum
-//        network[i].output = activFunc(matrixAdd(matrixMulti(input, network[i].weights), network[i].bias));
-//    }
-
-//    return network.back().output;
-//}
-
-//void backpropNetwork(real_vec error)
-//{
-//    real learningRate = 0.01;
-
-//    // Backprop output layer
-//    network.back().gradient = matrixScale(learningRate, error);
-
-//    // Loop backwards
-//    for (int i = (network.back().size() - 2); i >= 0; --i) {
-
-//        // Backprop hidden and input layers
-//        network[i].gradient =
-//    }
-//}
-
 #include <random>
 
 void test_matrix()
 {
-    std::random_device rd{};
-    std::mt19937 gen{rd()};
-    std::normal_distribution<real> d{0, 10};
+    Matrix mat1(4, 4, {1,  2,  3,  4,
+                      5,  6,  7,  8,
+                      9, 10, 11, 12,
+                      13, 14, 15, 16});
 
+    std::cout << mat1.str() << std::endl;
 
-//    Matrix mat1(3, 3);
-//    for (unsigned i = 0; i < mat1.rows(); ++i) {
-//        for (unsigned j = 0; j < mat1.cols(); ++j) {
-//            mat1(i, j) = d(gen);
-//        }
-//    }
+    Vector vec1({100, 101, 102, 103});
+    mat1.addCol(vec1);
 
-//    std::cout << "mat1:\n" << mat1.str() << std::endl;
-
-
-
-//    Matrix mat2(3, 3);
-//    for (unsigned i = 0; i < mat2.rows(); ++i) {
-//        for (unsigned j = 0; j < mat2.cols(); ++j) {
-//            mat2(i, j) = d(gen);
-//        }
-//    }
-
-//    std::cout << "mat2:\n" << mat2.str() << std::endl;
-
-
-//    Matrix mat3 = mat1.transpose();
-
-//    std::cout << "mat3:\n" << mat3.str() << std::endl;
+    std::cout << mat1.str() << std::endl << std::endl << std::endl;
 
 
 
+    Matrix mat2(4, 1, {1,
+                       2,
+                       3,
+                       4});
+
+    std::cout << mat2.str() << std::endl;
+
+    Vector vec2({100, 101, 102, 103});
+    mat2.addCol(vec2);
+
+    std::cout << mat2.str() << std::endl << std::endl << std::endl;
 
 
 
+    Matrix mat3(1, 4, {1, 2, 3, 4});
 
+    std::cout << mat3.str() << std::endl;
 
-//    Matrix mat4(3, 3);
-//    for (unsigned i = 0; i < mat4.getRows(); ++i) {
-//        for (unsigned j = 0; j < mat4.getCols(); ++j) {
-//            mat4(i, j) = d(gen);
-//        }
-//    }
+    Vector vec3(1, 100);
+    mat3.addCol(vec3);
 
-//    std::cout << mat4.str() << std::endl;
-
-
-//    Matrix mat5(1, 1);
-//    for (unsigned i = 0; i < mat5.getRows(); ++i) {
-//        for (unsigned j = 0; j < mat5.getCols(); ++j) {
-//            mat5(i, j) = d(gen);
-//        }
-//    }
-
-//    std::cout << mat5.str() << std::endl;
+    std::cout << mat3.str() << std::endl << std::endl << std::endl;
 
 
 
-//    Matrix mat1(5, 1);
-//    std::cout << mat1.str() << std::endl;
+    Matrix mat4(4, 2, {1,  2,
+                       3,  4,
+                       5,  6,
+                       7,  8});
 
-//    Matrix mat2(1, 5);
-//    std::cout << mat2.str() << std::endl;
+    std::cout << mat4.str() << std::endl;
 
-//    Matrix mat3(5, 5);
-//    std::cout << mat3.str() << std::endl;
+    Vector vec4({100, 101, 102, 103});
+    mat4.addCol(vec4);
 
+    std::cout << mat4.str() << std::endl << std::endl << std::endl;
+
+
+
+    Matrix mat5(2, 4, {1,  2,  3,  4,
+                      5,  6,  7,  8});
+
+    std::cout << mat5.str() << std::endl;
+
+    Vector vec5(2);
+    vec5(0) = 100;
+    vec5(1) = 101;
+    mat5.addCol(vec5);
+
+    std::cout << mat5.str() << std::endl << std::endl << std::endl;
 }
-
-//namespace op {
-//std::pair<int, int> divmod(int x, int y) {
-//    return { x / y, x % y };
-//}
-//}
-
-//void test_op()
-//{
-//    auto divmod = base::make_named_operator(op::divmod);
-//    int x = 42;
-//    int y = 23;
-//    auto z = x <divmod> y;
-//    std::cout << "(" << z.first << ", "
-//              << z.second << ")\n";
-//}
 
 int main()
 {
 //    test_matrix();
 //    return 0;
 
-//    test_op();
-//    return 0;
+//    Matrix mat(4, 1, {1,
+//                      2,
+//                      3,
+//                      4});
+
+//    Vector vec;
+
+//    Vector vec2({1,
+//                2,
+//                3,
+//                4});
+
+//    vec = mat;
+//    vec = vec2;
+//    vec = {1,
+//           2,
+//           3,
+//           4};
+
 
     MNIST mnist;
-    real_vec train_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/train-labels.idx1-ubyte");
+    Vector train_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/train-labels.idx1-ubyte");
     std::vector<real_matrix> train_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/train-images.idx3-ubyte");
-    real_vec test_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-labels.idx1-ubyte");
+//    Matrix train_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/train-images.idx3-ubyte");
+    Vector test_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-labels.idx1-ubyte");
     std::vector<real_matrix> test_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-images.idx3-ubyte");
+//    Matrix test_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-images.idx3-ubyte");
 
     std::vector<size_t> size_vec = {784/* 28*28 */, 32, 10};
     NeuralNet net(size_vec);
 
 
-    net.setNEpochs(10);
+    net.setNEpochs(4);
     net.setBatchSize(1);
     net.setLearningRate(0.01);
     net.setPrintInterval(10000);
@@ -268,7 +146,7 @@ int main()
         real_vec target_sample;
         for (size_t j = 0; j < 10; ++j) {
 
-            if (j == (unsigned int)train_labels[i]) {
+            if (j == (unsigned int)train_labels(i)) {
                 target_sample.push_back(1);
             } else {
                 target_sample.push_back(0);
@@ -278,6 +156,24 @@ int main()
         target.push_back(target_sample);
     }
 
+
+//    // Format target
+//    Matrix train_labels(train_labels_nbr.size(), 10);
+
+//    for (size_t i = 0; i < train_labels_nbr.size(); ++i) {
+
+//        Vector target_vec(10);
+
+//        for (size_t j = 0; j < 10; ++j) {
+//            if (j == (unsigned int)train_labels_nbr(i)) {
+//                target_vec.pushBack(1);
+//            } else {
+//                target_vec.pushBack(0);
+//            }
+//        }
+
+//        train_labels.addRow(target_vec);
+//    }
 
 
     // Train
@@ -310,7 +206,7 @@ int main()
         real_vec target_sample;
         for (size_t j = 0; j < 10; ++j) {
 
-            if (j == (unsigned int)test_labels[i]) {
+            if (j == (unsigned int)test_labels(i)) {
                 target_sample.push_back(1);
             } else {
                 target_sample.push_back(0);
@@ -341,7 +237,7 @@ int main()
 
 
         // Check if res is correct
-        if (test_labels[i] != resIdx) {
+        if (test_labels(i) != resIdx) {
             // Uncertain res, well just wrong!
             uncertainRes = true;
             --correctPrecentage;

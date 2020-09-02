@@ -1,4 +1,4 @@
-﻿#include <NeuralNet/neuralnet.h>
+#include <NeuralNet/neuralnet.h>
 #include <cmath>
 #include <random>
 #include <algorithm>
@@ -175,6 +175,38 @@ real NeuralNet::train(real_matrix input, real_matrix target)
 
                 // Average input
                 avg_input += input[batchIdx];
+
+//                if ((batchIdx % 10) == 0) {
+//                    std::cout << "0" << std::endl;
+//                }
+
+//                if ((batchIdx % 100) == 0) {
+//                    std::cout << "00" << std::endl;
+//                }
+
+//                if ((batchIdx % 1000) == 0) {
+//                    std::cout << "00" << std::endl;
+//                }
+
+//                if ((batchIdx % 4000) == 0) {
+//                    std::cout << "00" << std::endl;
+//                }
+
+//                if ((batchIdx % 9000) == 0) {
+//                    std::cout << "a" << std::endl;
+//                }
+
+//                if ((batchIdx % 9500) == 0) {
+//                    std::cout << "b" << std::endl;
+//                }
+
+//                if ((batchIdx % 9900) == 0) {
+//                    std::cout << "c" << std::endl;
+//                }
+
+//                if ((batchIdx % 9999) == 0) {
+//                    std::cout << "d" << std::endl;
+//                }
 
                 // Print
                 if ((batchIdx % m_printInterval) == 0) {
@@ -660,7 +692,7 @@ Vector activation_func_relu(Vector x, NeuralNet *net)
 
     static const real e = static_cast<real>(std::exp(1.0));
 
-    Vector res(x.size(), 1);
+    Vector res(x.size(), 0.0);
 
     for (unsigned i = 0; i < x.size(); ++i) {
 
@@ -686,7 +718,7 @@ Vector activation_func_sigmoid(Vector x, NeuralNet *net)
 
     static const real e = static_cast<real>(std::exp(1.0));
 
-    Vector res(x.size(), 1);
+    Vector res(x.size(), 0.0);
 
     for (unsigned i = 0; i < x.size(); ++i) {
 
@@ -709,7 +741,7 @@ Vector activation_func_tanh(Vector x, NeuralNet *net)
 {
     (void)net;
 
-    Vector res(x.size(), 1);
+    Vector res(x.size(), 0.0);
 
     for (unsigned i = 0; i < x.size(); ++i) {
 
@@ -825,23 +857,41 @@ void optimize_func_backprop(Vector input, Vector error, NeuralNet* net)
     // Loop backwards
     for (int i = (layers.size() - 2); i >= 0; --i) {
 
-                layers[i].gradient = layers[i + 1].weights.transpose()
-                        * (net->activationFunctionDerivate(i, layers[i + 1].weightedSum)
-                        * layers[i + 1].gradient);
+//                layers[i].gradient = layers[i + 1].weights.transpose()
+//                        * (net->activationFunctionDerivate(i, layers[i + 1].weightedSum).multiplyElemWise(layers[i + 1].gradient));
+
+        layers[i].gradient = layers[i + 1].weights.transpose() * (net->activationFunctionDerivate(i, layers[i + 1].weightedSum).multiplyElemWise(layers[i + 1].gradient));
     }
 
     // Loop backwards
     for (int i = (layers.size() - 1); i > 0; --i) {
 
-        layers[i].weights = layers[i].weights.subtractElemWise(
-                    (net->activationFunctionDerivate(i, layers[i].weightedSum) * layers[i].gradient).matMul(layers[i - 1].output)
-                );
+//        layers[i].weights = layers[i].weights.subtractElemWise(
+//                    (net->activationFunctionDerivate(i, layers[i].weightedSum) * layers[i].gradient).matMul(layers[i - 1].output)
+//                );
 
+        layers[i].weights -= net->activationFunctionDerivate(i, layers[i].weightedSum).multiplyElemWise(layers[i].gradient) * layers[i - 1].output.transpose();
+
+
+//        Matrix mat1 = net->activationFunctionDerivate(i, layers[i].weightedSum);
+
+//        Matrix mat2 = layers[i].gradient;
+
+//        Matrix mat3 = mat1.multiplyElemWise(mat2);
+
+//        Matrix mat4 = layers[i - 1].output.transpose();
+
+//        Matrix mat5 = mat3 * mat4;
+
+//        layers[i].weights = layers[i].weights - mat5;
     }
 
-    layers[0].weights = layers[0].weights.subtractElemWise(
-                (net->activationFunctionDerivate(0, layers[0].weightedSum) * layers[0].gradient).matMul(input)
-            );
+//    layers[0].weights = layers[0].weights.subtractElemWise(
+//                (net->activationFunctionDerivate(0, layers[0].weightedSum) * layers[0].gradient).matMul(input)
+//            );
+
+    layers[0].weights -= net->activationFunctionDerivate(0, layers[0].weightedSum).multiplyElemWise(layers[0].gradient) * input.transpose();
+
 }
 
 
