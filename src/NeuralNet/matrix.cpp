@@ -88,7 +88,7 @@ Matrix::Matrix(const std::initializer_list<std::initializer_list<real>>& row_lis
 }
 
 // Matrix/Matrix operations
-bool Matrix::operator==(const Matrix &rhs)
+bool Matrix::operator==(const Matrix &rhs) const
 {
     if (m_rows != rhs.m_rows) {
         return false;
@@ -111,12 +111,12 @@ bool Matrix::operator==(const Matrix &rhs)
     return true;
 }
 
-bool Matrix::operator!=(const Matrix &rhs)
+bool Matrix::operator!=(const Matrix &rhs) const
 {
     return !(*this == rhs);
 }
 
-Matrix Matrix::operator+(const Matrix& rhs)
+Matrix Matrix::operator+(const Matrix& rhs) const
 {
     if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
         THROW_ERROR("Matrix sizes must be equal. "
@@ -135,7 +135,7 @@ Matrix Matrix::operator+(const Matrix& rhs)
     return res;
 }
 
-Matrix Matrix::operator-(const Matrix& rhs)
+Matrix Matrix::operator-(const Matrix& rhs) const
 {
     if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
         THROW_ERROR("Matrix sizes must be equal. "
@@ -154,7 +154,7 @@ Matrix Matrix::operator-(const Matrix& rhs)
     return res;
 }
 
-Matrix Matrix::operator*(const Matrix& rhs)
+Matrix Matrix::operator*(const Matrix& rhs) const
 {
     if (m_cols != rhs.m_rows) {
         THROW_ERROR("Matrices have incompatible dimensions. "
@@ -220,7 +220,7 @@ Matrix& Matrix::operator*=(const Matrix& rhs)
 }
 
 // Matrix/scalar operations
-Matrix Matrix::operator+(const real& rhs)
+Matrix Matrix::operator+(const real& rhs) const
 {
     Matrix res(m_rows, m_cols);
 
@@ -231,7 +231,7 @@ Matrix Matrix::operator+(const real& rhs)
     return res;
 }
 
-Matrix Matrix::operator-(const real& rhs)
+Matrix Matrix::operator-(const real& rhs) const
 {
     Matrix res(m_rows, m_cols);
 
@@ -242,7 +242,7 @@ Matrix Matrix::operator-(const real& rhs)
     return res;
 }
 
-Matrix Matrix::operator*(const real& rhs)
+Matrix Matrix::operator*(const real& rhs) const
 {
     Matrix res(m_rows, m_cols);
 
@@ -253,7 +253,7 @@ Matrix Matrix::operator*(const real& rhs)
     return res;
 }
 
-Matrix Matrix::operator/(const real& rhs)
+Matrix Matrix::operator/(const real& rhs) const
 {
     Matrix res(m_rows, m_cols);
 
@@ -301,7 +301,7 @@ Matrix& Matrix::operator/=(const real& rhs)
 }
 
 // Matrix operations
-Matrix Matrix::transpose()
+Matrix Matrix::transpose() const
 {
     Matrix res(m_cols, m_rows);
 
@@ -425,7 +425,7 @@ const real& Matrix::operator()(const unsigned& idx) const
     return m_vec[idx];
 }
 
-Vector Matrix::row(const unsigned& row)
+Vector Matrix::row(const unsigned& row) const
 {
     Vector vec(m_cols);
 
@@ -436,7 +436,7 @@ Vector Matrix::row(const unsigned& row)
     return vec;
 }
 
-Vector Matrix::col(const unsigned& col)
+Vector Matrix::col(const unsigned& col) const
 {
     Vector vec(m_rows);
 

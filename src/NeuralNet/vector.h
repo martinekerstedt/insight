@@ -13,13 +13,13 @@ public:
     Vector(const std::vector<real>& vec);
     Vector(const std::initializer_list<real>& list);
 
-    Vector transpose();
+    Vector transpose() const;
 
     void pushBack(const real& elem);
     void popBack();
 
-    real front();
-    real back();
+    real front() const;
+    real back() const;
     void reserve(size_t size);
 
     // Deleted functions

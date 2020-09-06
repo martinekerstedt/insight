@@ -21,27 +21,27 @@ public:
     Matrix(const std::initializer_list<std::initializer_list<real>>& row_list);
 
     // Matrix/Matrix operators
-    bool operator==(const Matrix& rhs);                                         // vec: exactly same
-    bool operator!=(const Matrix& rhs);                                         // vec: exactly same
-    Matrix operator+(const Matrix& rhs);                                        // vec: exactly same
-    Matrix operator-(const Matrix& rhs);                                        // vec: exactly same
-    Matrix operator*(const Matrix& rhs);                                        // vec: exactly same
+    bool operator==(const Matrix& rhs) const;                                         // vec: exactly same
+    bool operator!=(const Matrix& rhs) const;                                         // vec: exactly same
+    Matrix operator+(const Matrix& rhs) const;                                         // vec: exactly same
+    Matrix operator-(const Matrix& rhs) const;                                        // vec: exactly same
+    Matrix operator*(const Matrix& rhs) const;                                        // vec: exactly same
     Matrix& operator+=(const Matrix& rhs);                                      // vec: exactly same
     Matrix& operator-=(const Matrix& rhs);                                      // vec: exactly same
     Matrix& operator*=(const Matrix& rhs);                                      // vec: exactly same
 
     // Matrix/scalar operators
-    Matrix operator+(const real& rhs);                                          // vec: exactly same
-    Matrix operator-(const real& rhs);                                          // vec: exactly same
-    Matrix operator*(const real& rhs);                                          // vec: exactly same
-    Matrix operator/(const real& rhs);                                          // vec: exactly same
+    Matrix operator+(const real& rhs) const;                                          // vec: exactly same
+    Matrix operator-(const real& rhs) const;                                          // vec: exactly same
+    Matrix operator*(const real& rhs) const;                                          // vec: exactly same
+    Matrix operator/(const real& rhs) const;                                          // vec: exactly same
     Matrix& operator+=(const real& rhs);                                        // vec: exactly same
     Matrix& operator-=(const real& rhs);                                        // vec: exactly same
     Matrix& operator*=(const real& rhs);                                        // vec: exactly same
     Matrix& operator/=(const real& rhs);                                        // vec: exactly same
 
     // Matrix operators
-    Matrix transpose();                                                         // vec: exactly same
+    Matrix transpose() const;                                                         // vec: exactly same
     Matrix& multiplyElemWise(const Matrix& rhs);                                // vec: exactly same
 
     // Access
@@ -57,8 +57,8 @@ public:
     const real& operator()(const unsigned& row, const unsigned& col) const;     // vec: delete
     const real& operator()(const unsigned& idx) const;                          // vec: exactly same
 
-    Vector row(const unsigned& row);
-    Vector col(const unsigned& row);
+    Vector row(const unsigned& row) const;
+    Vector col(const unsigned& row) const;
 
     // Modify
     // Need difference between add new row and edit exisiting row

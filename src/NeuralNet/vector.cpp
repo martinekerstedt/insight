@@ -36,7 +36,7 @@ Vector::Vector(const std::initializer_list<real>& list) :
 
 }
 
-Vector Vector::transpose()
+Vector Vector::transpose() const
 {
     Vector res(*this);
     res.m_rows = m_cols;
@@ -78,12 +78,12 @@ void Vector::popBack()
     m_vec.pop_back();
 }
 
-real Vector::front()
+real Vector::front() const
 {
     return m_vec.front();
 }
 
-real Vector::back()
+real Vector::back() const
 {
     return m_vec.back();
 }
