@@ -10,33 +10,44 @@
 
 #include <random>
 
+void my_init(NeuralNet::StateAccess& state)
+{
+    const NeuralNet::State::Config s = state.config();
+    std::vector<NeuralNet::Layer>& layers = state.layers();
+    layers[0].bias(2) = 2;
+
+    NeuralNet::State a;
+//    a.costFunc.
+}
 
 
 int main()
 {
+    // Load data
     MNIST mnist;
     Matrix train_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/train-labels.idx1-ubyte");
     Matrix train_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/train-images.idx3-ubyte");
     Matrix test_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-labels.idx1-ubyte");
-    Matrix test_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-images.idx3-ubyte");
+    Matrix test_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-images.idx3-ubyte");       
 
-//    std::vector<size_t> size_vec = {784/* 28*28 */, 32, 10};
-//    NeuralNet net(size_vec);
 
+    // Config net
     NeuralNet net({784, 32, 10});
 
-
-    net.setNEpochs(4);
-    net.setBatchSize(1);
-    net.setLearningRate(0.01);
-    net.setPrintInterval(10000);
-    net.setSoftMax(false);
-
-
-
+//    net.setNEpochs(4);
+//    net.setBatchSize(1);
+//    net.setLearningRate(0.01);
+//    net.setPrintInterval(10000);
+//    net.setSoftMax(false);
+    net.config().nEpochs = 4;
+    net.config().batchSize = 1;
+    net.config().learningRate = 0.01;
+    net.config().printInterval = 10000;
+    net.config().softMax = false;
+    
+    
     // Train
     net.train(train_images, train_labels);
-
 
 
     // Test
@@ -115,7 +126,6 @@ int main()
     correctPrecentage /= nSamples;
 
     std::cout << "Accuracy: " << correctPrecentage << std::endl;
-
 
 
     return 0;

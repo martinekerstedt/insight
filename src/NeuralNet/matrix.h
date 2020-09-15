@@ -6,6 +6,7 @@
 
 class Vector;
 
+// TODO: Move sematics https://stackoverflow.com/questions/3106110/what-is-move-semantics
 
 class Matrix
 {
