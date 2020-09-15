@@ -20,6 +20,70 @@ using real_3d_matrix = std::vector<real_matrix>;
                         + " > " + ss.str()))
 
 
+
+namespace InitializationFunction {
+    struct ALL_ZERO
+    {
+
+    };
+
+    struct RANDOM_NORMAL
+    {
+        real mean = 0.0;
+        real stddev = 1.0;
+    };
+}
+
+namespace CostFunction {
+    struct DIFFERENCE
+    {
+
+    };
+
+    struct CROSS_ENTROPY
+    {
+
+    };
+
+    struct SQUARE_DIFFERENCE
+    {
+
+    };
+}
+
+namespace ActivationFunction {
+    struct RELU
+    {
+
+    };
+
+    struct SIGMOID
+    {
+
+    };
+
+    struct TANH
+    {
+
+    };
+}
+
+namespace OptimizeFunction {
+    struct TEST
+    {
+
+    };
+
+    struct BACKPROP
+    {
+
+    };
+}
+
+
+
+
+
 //namespace base {
 
 //template <typename F>

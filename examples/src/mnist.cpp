@@ -34,17 +34,16 @@ int main()
     // Config net
     NeuralNet net({784, 32, 10});
 
-//    net.setNEpochs(4);
-//    net.setBatchSize(1);
-//    net.setLearningRate(0.01);
-//    net.setPrintInterval(10000);
-//    net.setSoftMax(false);
     net.config().nEpochs = 4;
     net.config().batchSize = 1;
     net.config().learningRate = 0.01;
     net.config().printInterval = 10000;
     net.config().softMax = false;
-    
+
+    InitializationFunction::RANDOM_NORMAL cfg;
+    cfg.mean = 32;
+    net.setInitializationFunction(cfg);
+        
     
     // Train
     net.train(train_images, train_labels);
