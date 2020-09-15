@@ -42,7 +42,6 @@ NeuralNet::NeuralNet(const std::vector<size_t>& sizeVec) :
     m_state.config.nEpochs = 1;
     m_state.config.printInterval = 1;
     m_state.config.softMax = false;
-    m_state.config.learningRate = 1.0;
 
 
     // Default initialization function
@@ -271,7 +270,7 @@ void NeuralNet::printState(Vector input, Vector target, Vector error, size_t bat
 
 
     // Learning rate
-    ss << "lrt: [ " << std::setprecision(4) << m_state.config.learningRate << std::setprecision(2) << " ]\n";
+    ss << "lrt: [ " << std::setprecision(4) << m_state.optFunc.cfg.backprop.learningRate << std::setprecision(2) << " ]\n";
 
 
 

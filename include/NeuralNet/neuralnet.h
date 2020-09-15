@@ -12,6 +12,8 @@
 //   Calc cost
 //   If batchSize allows, optimize
 // Need to set input in seperate function
+// Should be enough to config network then call step in a loop
+// until a flag is set to signal that training is done
 
 // Want to be able to easly chain nerual nets together
 //   Set input
@@ -176,7 +178,6 @@ public:
             unsigned int nEpochs;
             unsigned int printInterval;
             bool softMax;
-            real learningRate;
         } config;
 
         std::vector<Layer> layers;

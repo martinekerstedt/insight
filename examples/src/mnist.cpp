@@ -18,6 +18,8 @@ void my_init(NeuralNet::StateAccess& state)
 
     NeuralNet::State a;
 //    a.costFunc.
+
+
 }
 
 
@@ -36,7 +38,6 @@ int main()
 
     net.config().nEpochs = 4;
     net.config().batchSize = 1;
-    net.config().learningRate = 0.01;
     net.config().printInterval = 10000;
     net.config().softMax = false;
 

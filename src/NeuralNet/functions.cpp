@@ -7,9 +7,15 @@ void init_func_random_normal(NeuralNet::StateAccess& net)
 {
     InitializationFunction::RANDOM_NORMAL cfg = net.m_state.initFunc.cfg.random;
 
-    // Random generator
-    std::random_device rd{};
-    std::mt19937 gen{rd()};
+    std::mt19937 gen;
+
+    if (std::isnan(cfg.seed)) {
+        // Random generator
+        std::random_device rd{};
+        gen.seed(rd());
+    } else {
+        gen.seed(cfg.seed);
+    }
 
     // values near the mean are the most likely
     // standard deviation affects the dispersion of generated values from the mean
@@ -240,10 +246,11 @@ Vector cost_func_cross_entropy(const Vector& output, const Vector& target, Neura
 // Optimize functions
 void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet::StateAccess& net)
 {
+    OptimizeFunction::BACKPROP& cfg = net.m_state.optFunc.cfg.backprop;
     std::vector<NeuralNet::Layer>& layers = net.m_state.layers;
 
     // Backprop output layer
-    layers.back().gradient = error*net.m_state.config.learningRate;
+    layers.back().gradient = error*cfg.learningRate;
 
     // Loop backwards
     for (int i = (layers.size() - 2); i >= 0; --i) {

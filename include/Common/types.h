@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <sstream>
+#include <limits>
 
 using real = float;
 using real_vec = std::vector<real>;
@@ -19,7 +20,8 @@ using real_3d_matrix = std::vector<real_matrix>;
                         + " | line:" + std::to_string(__LINE__) \
                         + " > " + ss.str()))
 
-
+#define NONE_UL     std::numeric_limits<unsigned long>::quiet_NaN()
+#define NONE_REAL   std::numeric_limits<real>::quiet_NaN()
 
 namespace InitializationFunction {
     struct ALL_ZERO
@@ -31,6 +33,7 @@ namespace InitializationFunction {
     {
         real mean = 0.0;
         real stddev = 1.0;
+        unsigned long seed = NONE_UL;
     };
 }
 
@@ -54,7 +57,9 @@ namespace CostFunction {
 namespace ActivationFunction {
     struct RELU
     {
-
+        real alpha = 0.0;
+        real max_value = NONE_REAL;
+        real threshold = 0.0;
     };
 
     struct SIGMOID
@@ -76,7 +81,8 @@ namespace OptimizeFunction {
 
     struct BACKPROP
     {
-
+        real learningRate = 0.01;
+        real momentum = 0.0;
     };
 }
 
