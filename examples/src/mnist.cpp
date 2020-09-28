@@ -41,9 +41,9 @@ int main()
     net.config().printInterval = 10000;
     net.config().softMax = false;
 
-    InitializationFunction::RANDOM_NORMAL cfg;
-    cfg.mean = 32;
-    net.setInitializationFunction(cfg);
+//    InitializationFunction::RANDOM_NORMAL cfg;
+//    cfg.mean = 32;
+//    net.setInitializationFunction(cfg);
         
     
     // Train

@@ -4,9 +4,12 @@ echo " "
 echo " "
 
 
+# Default build mode is debug
+# If it has any args, do release build
+if [[ $# -eq 0 ]]; then
+    DEBUG_BUILD=1
+fi
 
-# Default build mode
-DEBUG_BUILD=1
 
 #read -t 3 -p "`echo -e '(Debug Build): Press Enter to switch to (Release Build)\n>'`"
 
@@ -17,12 +20,13 @@ DEBUG_BUILD=1
 #    echo -e "\n\n*** (Debug Build)\n"
 #fi
 
-echo -e "(Debug Build): Edit ./build_all to change build mode.\n\n"
 
 
 
-if [[ DEBUG_BUILD ]]; then
-    cmake -DCMAKE_BUILD_TYPE=Debug -S . -B ./build-debug
+
+if [[ ${DEBUG_BUILD} ]]; then
+    echo -e "(Debug Build): Edit ./build_all to change build mode.\n\n"
+    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -S . -B ./build-debug
 else
     cmake -DCMAKE_BUILD_TYPE=Release -S . -B ./build-release
 fi
@@ -37,7 +41,7 @@ fi
 
 make -C ./build
 
-if [[ DEBUG_BUILD ]]; then
+if [[ ${DEBUG_BUILD} ]]; then
     make -C ./build-debug
 else
     make -C ./build-release

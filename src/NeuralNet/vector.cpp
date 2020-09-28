@@ -36,13 +36,13 @@ Vector::Vector(const std::initializer_list<real>& list) :
 
 }
 
-Vector Vector::transpose() const
-{
-    Vector res(*this);
-    res.m_rows = m_cols;
-    res.m_cols = m_rows;
-    return res;
-}
+//Vector Vector::transpose() const
+//{
+//    Vector res(*this);
+//    res.m_rows = m_cols;
+//    res.m_cols = m_rows;
+//    return res;
+//}
 
 void Vector::pushBack(const real &elem)
 {
@@ -88,10 +88,10 @@ real Vector::back() const
     return m_vec.back();
 }
 
-void Vector::reserve(size_t size)
-{
-    m_vec.reserve(size);
-}
+//void Vector::reserve(size_t size)
+//{
+//    m_vec.reserve(size);
+//}
 
 
 

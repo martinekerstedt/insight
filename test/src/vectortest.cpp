@@ -159,7 +159,7 @@ TEST(VectorAssignment, InitializerList)
 TEST(VectorFunctions, Transpose)
 {
     Vector vec1(VEC_1);
-    Vector vec2 = vec1.transpose();
+    Vector vec2 = vec1.trans();
 
     EXPECT_EQ(vec1.rows(), VEC_1_SIZE);
     EXPECT_EQ(vec1.cols(), 1);

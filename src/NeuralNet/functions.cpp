@@ -254,19 +254,60 @@ void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet:
 
     // Loop backwards
     for (int i = (layers.size() - 2); i >= 0; --i) {
-
-        layers[i].gradient = layers[i + 1].weights.transpose()
-                * (net.activationFunctionDerivate(i, layers[i + 1].weightedSum).multiplyElemWise(layers[i + 1].gradient));
+        layers[i].gradient = layers[i + 1].weights.trans()
+                * (net.activationFunctionDerivate(i, layers[i + 1].weightedSum).mulEWise(layers[i + 1].gradient));
     }
 
     // Loop backwards
     for (int i = (layers.size() - 1); i > 0; --i) {
 
-        layers[i].weights -= net.activationFunctionDerivate(i, layers[i].weightedSum).multiplyElemWise(layers[i].gradient)
-                * layers[i - 1].output.transpose();
+//        layers[i].weights -= net.activationFunctionDerivate(i, layers[i].weightedSum).mulEWise(layers[i].gradient)
+//                * layers[i - 1].output.trans();
+
+        layers[i].weights -= net.activationFunctionDerivate(i, layers[i].weightedSum).mulEWise(layers[i].gradient)
+                * layers[i - 1].output.trans();
 
     }
 
-    layers[0].weights -= net.activationFunctionDerivate(0, layers[0].weightedSum).multiplyElemWise(layers[0].gradient)
-            * input.transpose();
+    layers[0].weights -= net.activationFunctionDerivate(0, layers[0].weightedSum).mulEWise(layers[0].gradient)
+            * input.trans();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

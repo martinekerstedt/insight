@@ -116,153 +116,153 @@ bool Matrix::operator!=(const Matrix &rhs) const
     return !(*this == rhs);
 }
 
-Matrix Matrix::operator+(const Matrix& rhs) const
-{
-    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
-        THROW_ERROR("Matrix sizes must be equal. "
-                    << m_rows << "x" << m_cols
-                    << " != "
-                    << rhs.m_rows << "x" << rhs.m_cols
-                    << ".");
-    }
+//Matrix Matrix::operator+(const Matrix& rhs) const
+//{
+//    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
+//        THROW_ERROR("Matrix sizes must be equal. "
+//                    << m_rows << "x" << m_cols
+//                    << " != "
+//                    << rhs.m_rows << "x" << rhs.m_cols
+//                    << ".");
+//    }
 
-    Matrix res(m_rows, m_cols);
+//    Matrix res(m_rows, m_cols);
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        res.m_vec[i] = m_vec[i] + rhs.m_vec[i];
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        res.m_vec[i] = m_vec[i] + rhs.m_vec[i];
+//    }
 
-    return res;
-}
+//    return res;
+//}
 
-Matrix Matrix::operator-(const Matrix& rhs) const
-{
-    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
-        THROW_ERROR("Matrix sizes must be equal. "
-                    << m_rows << "x" << m_cols
-                    << " != "
-                    << rhs.m_rows << "x" << rhs.m_cols
-                    << ".");
-    }
+//Matrix Matrix::operator-(const Matrix& rhs) const
+//{
+//    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
+//        THROW_ERROR("Matrix sizes must be equal. "
+//                    << m_rows << "x" << m_cols
+//                    << " != "
+//                    << rhs.m_rows << "x" << rhs.m_cols
+//                    << ".");
+//    }
 
-    Matrix res(m_rows, m_cols);
+//    Matrix res(m_rows, m_cols);
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        res.m_vec[i] = m_vec[i] - rhs.m_vec[i];
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        res.m_vec[i] = m_vec[i] - rhs.m_vec[i];
+//    }
 
-    return res;
-}
+//    return res;
+//}
 
-Matrix Matrix::operator*(const Matrix& rhs) const
-{
-    if (m_cols != rhs.m_rows) {
-        THROW_ERROR("Matrices have incompatible dimensions. "
-                    << this->m_rows << "x" << this->m_cols
-                    << " and "
-                    << rhs.m_rows << "x" << rhs.m_cols
-                    << ".");
-    }
+//Matrix Matrix::operator*(const Matrix& rhs) const
+//{
+//    if (m_cols != rhs.m_rows) {
+//        THROW_ERROR("Matrices have incompatible dimensions. "
+//                    << this->m_rows << "x" << this->m_cols
+//                    << " and "
+//                    << rhs.m_rows << "x" << rhs.m_cols
+//                    << ".");
+//    }
 
-    Matrix res(m_rows, rhs.m_cols, 0.0);
+//    Matrix res(m_rows, rhs.m_cols, 0.0);
 
-    for (unsigned i = 0; i < m_rows; ++i) {
-        for (unsigned j = 0; j < rhs.m_cols; ++j) {
-            for (unsigned k = 0; k < rhs.m_rows; ++k) {
-                res(i, j) += (*this)(i, k) * rhs(k, j);
-            }
-        }
-    }
+//    for (unsigned i = 0; i < m_rows; ++i) {
+//        for (unsigned j = 0; j < rhs.m_cols; ++j) {
+//            for (unsigned k = 0; k < rhs.m_rows; ++k) {
+//                res(i, j) += (*this)(i, k) * rhs(k, j);
+//            }
+//        }
+//    }
 
 
-    return res;
-}
+//    return res;
+//}
 
-Matrix& Matrix::operator+=(const Matrix& rhs)
-{
-    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
-        THROW_ERROR("Matrix sizes must be equal. "
-                    << m_rows << "x" << m_cols
-                    << " != "
-                    << rhs.m_rows << "x" << rhs.m_cols
-                    << ".");
-    }
+//Matrix& Matrix::operator+=(const Matrix& rhs)
+//{
+//    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
+//        THROW_ERROR("Matrix sizes must be equal. "
+//                    << m_rows << "x" << m_cols
+//                    << " != "
+//                    << rhs.m_rows << "x" << rhs.m_cols
+//                    << ".");
+//    }
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        m_vec[i] += rhs.m_vec[i];
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        m_vec[i] += rhs.m_vec[i];
+//    }
 
-    return *this;
-}
+//    return *this;
+//}
 
-Matrix& Matrix::operator-=(const Matrix& rhs)
-{
-    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
-        THROW_ERROR("Matrix sizes must be equal. "
-                    << m_rows << "x" << m_cols
-                    << " != "
-                    << rhs.m_rows << "x" << rhs.m_cols
-                    << ".");
-    }
+//Matrix& Matrix::operator-=(const Matrix& rhs)
+//{
+//    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
+//        THROW_ERROR("Matrix sizes must be equal. "
+//                    << m_rows << "x" << m_cols
+//                    << " != "
+//                    << rhs.m_rows << "x" << rhs.m_cols
+//                    << ".");
+//    }
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        m_vec[i] -= rhs.m_vec[i];
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        m_vec[i] -= rhs.m_vec[i];
+//    }
 
-    return *this;
-}
+//    return *this;
+//}
 
-Matrix& Matrix::operator*=(const Matrix& rhs)
-{
-    Matrix res = (*this) * rhs;
-    (*this) = res;
-    return *this;
-}
+//Matrix& Matrix::operator*=(const Matrix& rhs)
+//{
+//    Matrix res = (*this) * rhs;
+//    (*this) = res;
+//    return *this;
+//}
 
-// Matrix/scalar operations
-Matrix Matrix::operator+(const real& rhs) const
-{
-    Matrix res(m_rows, m_cols);
+//// Matrix/scalar operations
+//Matrix Matrix::operator+(const real& rhs) const
+//{
+//    Matrix res(m_rows, m_cols);
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        res.m_vec[i] = m_vec[i] + rhs;
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        res.m_vec[i] = m_vec[i] + rhs;
+//    }
 
-    return res;
-}
+//    return res;
+//}
 
-Matrix Matrix::operator-(const real& rhs) const
-{
-    Matrix res(m_rows, m_cols);
+//Matrix Matrix::operator-(const real& rhs) const
+//{
+//    Matrix res(m_rows, m_cols);
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        res.m_vec[i] = m_vec[i] - rhs;
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        res.m_vec[i] = m_vec[i] - rhs;
+//    }
 
-    return res;
-}
+//    return res;
+//}
 
-Matrix Matrix::operator*(const real& rhs) const
-{
-    Matrix res(m_rows, m_cols);
+//Matrix Matrix::operator*(const real& rhs) const
+//{
+//    Matrix res(m_rows, m_cols);
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        res.m_vec[i] = m_vec[i] * rhs;
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        res.m_vec[i] = m_vec[i] * rhs;
+//    }
 
-    return res;
-}
+//    return res;
+//}
 
-Matrix Matrix::operator/(const real& rhs) const
-{
-    Matrix res(m_rows, m_cols);
+//Matrix Matrix::operator/(const real& rhs) const
+//{
+//    Matrix res(m_rows, m_cols);
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        res.m_vec[i] = m_vec[i] / rhs;
-    }
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        res.m_vec[i] = m_vec[i] / rhs;
+//    }
 
-    return res;
-}
+//    return res;
+//}
 
 Matrix& Matrix::operator+=(const real& rhs)
 {
@@ -301,37 +301,43 @@ Matrix& Matrix::operator/=(const real& rhs)
 }
 
 // Matrix operations
-Matrix Matrix::transpose() const
+MatExprTrans<Matrix> Matrix::trans() const
 {
-    Matrix res(m_cols, m_rows);
-
-    for (unsigned i = 0; i < m_rows; ++i) {
-        for (unsigned j = 0; j < m_cols; ++j) {
-            res(j, i) = m_vec[i*m_cols + j];
-        }
-    }
-
-    return res;
+    return MatExprTrans<Matrix>(*const_cast<Matrix*>(this));
 }
 
-Matrix& Matrix::multiplyElemWise(const Matrix &rhs)
-{
-    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
-        THROW_ERROR("Matrix sizes must be equal. "
-                    << m_rows << "x" << m_cols
-                    << " != "
-                    << rhs.m_rows << "x" << rhs.m_cols
-                    << ".");
-    }
 
-//    Matrix res(m_rows, m_cols);
+//Matrix Matrix::transpose() const
+//{
+//    Matrix res(m_cols, m_rows);
 
-    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
-        m_vec[i] = m_vec[i] * rhs.m_vec[i];
-    }
+//    for (unsigned i = 0; i < m_rows; ++i) {
+//        for (unsigned j = 0; j < m_cols; ++j) {
+//            res(j, i) = m_vec[i*m_cols + j];
+//        }
+//    }
 
-    return *this;
-}
+//    return res;
+//}
+
+//Matrix& Matrix::multiplyElemWise(const Matrix &rhs)
+//{
+//    if ((m_rows != rhs.m_rows) || (m_cols != rhs.m_cols)) {
+//        THROW_ERROR("Matrix sizes must be equal. "
+//                    << m_rows << "x" << m_cols
+//                    << " != "
+//                    << rhs.m_rows << "x" << rhs.m_cols
+//                    << ".");
+//    }
+
+////    Matrix res(m_rows, m_cols);
+
+//    for (unsigned i = 0; i < (m_rows*m_cols); ++i) {
+//        m_vec[i] = m_vec[i] * rhs.m_vec[i];
+//    }
+
+//    return *this;
+//}
 
 // Access
 //real* Matrix::data()
@@ -427,6 +433,10 @@ const real& Matrix::operator()(const unsigned& idx) const
 
 Vector Matrix::row(const unsigned& row) const
 {
+    // Could create a vector of references and return it
+    // Then you could access the elements in the matrix
+    // through the vector
+
     Vector vec(m_cols);
 
     for (unsigned i = 0; i < m_cols; ++i) {
@@ -445,6 +455,18 @@ Vector Matrix::col(const unsigned& col) const
     }
 
     return vec;
+}
+
+void Matrix::resize(unsigned rows, unsigned cols)
+{
+    m_vec.resize(rows*cols);
+    m_rows = rows;
+    m_cols = cols;
+}
+
+void Matrix::reserve(unsigned size)
+{
+    m_vec.reserve(size);
 }
 
 // Modifiers
@@ -557,7 +579,10 @@ std::string Matrix::str()
     return ss.str();
 }
 
-
+bool Matrix::sourceOk(const Matrix &destMat)
+{
+    return !(&destMat == this);
+}
 
 
 
