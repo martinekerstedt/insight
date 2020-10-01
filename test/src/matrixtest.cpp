@@ -506,7 +506,8 @@ TEST(MatrixOperators, ElementWiseMultiplication)
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
     Matrix mat3 = mat1;
-    mat1 = mat1.mulEWise(mat2);
+//    mat1 = mat1.mulEWise(mat2);
+    mat1 = Matrix::mulEWise(mat1, mat2);
 
     for (unsigned i = 0; i < mat1.size(); ++i) {
         EXPECT_FLOAT_EQ(mat1(i), mat3(i) * mat2(i));

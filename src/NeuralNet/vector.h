@@ -28,17 +28,21 @@ public:
     template <typename E>
     Vector operator=(const MatExpr<E>& rhs)
     {
-        m_rows = rhs.rows();
-        m_cols = rhs.cols();
-        m_vec.resize(m_rows*m_cols);
+//        static_cast<Matrix>(*this).operator=(rhs);
 
-        const_cast<MatExpr<E>&>(rhs).sourceOk(*this);
+        Matrix::operator=(rhs);
 
-        for (unsigned row = 0; row < m_rows; ++row) {
-            for (unsigned col = 0; col < m_cols; ++col) {
-                m_vec[row*m_cols + col] = rhs(row, col);
-            }
-        }
+//        m_rows = rhs.rows();
+//        m_cols = rhs.cols();
+//        m_vec.resize(m_rows*m_cols);
+
+//        const_cast<MatExpr<E>&>(rhs).sourceOk(*this);
+
+//        for (unsigned row = 0; row < m_rows; ++row) {
+//            for (unsigned col = 0; col < m_cols; ++col) {
+//                m_vec[row*m_cols + col] = rhs(row, col);
+//            }
+//        }
 
         return *this;
     }

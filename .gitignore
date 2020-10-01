@@ -17,6 +17,7 @@ notes
 nn
 .vscode/*
 *.autosave
+src/NeuralNet/old
 
 
 # Empty for now

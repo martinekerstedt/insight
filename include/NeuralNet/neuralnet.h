@@ -61,14 +61,18 @@ public:
 
     const State& state();
 
-    Vector activationFunction(unsigned int layerIdx, const Vector& x);
-    Vector activationFunctionDerivate(unsigned int layerIdx, const Vector& x);
+//    Vector activationFunction(unsigned int layerIdx, const Vector& x);
+//    Vector activationFunctionDerivate(unsigned int layerIdx, const Vector& x);
+//    real activationFunction(real x, unsigned int layerIdx);
+//    real activationFunctionDerivate(real x, unsigned int layerIdx);
+//    auto activationFunction(unsigned int layerIdx); // return function pointer
+//    auto activationFunctionDerivate(unsigned int layerIdx);
 
     void setInitializationFunction(void (*initFunc)(StateAccess&));
     void setInitializationFunction(InitializationFunction::ALL_ZERO init_func);
     void setInitializationFunction(InitializationFunction::RANDOM_NORMAL init_func);
 
-    void setCostFunction(Vector (*costFunc)(const Vector&, const Vector&, StateAccess&));
+    void setCostFunction(real (*costFunc)(real, real, StateAccess&));
     void setCostFunction(CostFunction::DIFFERENCE cost_func);
     void setCostFunction(CostFunction::CROSS_ENTROPY cost_func);
     void setCostFunction(CostFunction::SQUARE_DIFFERENCE cost_func);
@@ -77,8 +81,8 @@ public:
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func);
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func);
     void setActivationFunction(unsigned int layerIdx,
-                               Vector (*activFunc)(const Vector&, unsigned int layerIdx, StateAccess&),
-                               Vector (*activFuncDeriv)(const Vector&, unsigned int layerIdx, StateAccess&));
+                               real (*activFunc)(real, StateAccess&),
+                               real (*activFuncDeriv)(real, StateAccess&));
 
     void setOptimizeFunction(OptimizeFunction::TEST opt_func);
     void setOptimizeFunction(OptimizeFunction::BACKPROP opt_func);
@@ -193,8 +197,8 @@ public:
         {
             ActivFuncConfig cfg;
             ActivFuncType type;
-            Vector (*ptr)(const Vector&, unsigned int layerIdx, StateAccess&);
-            Vector (*derivPtr)(const Vector&, unsigned int layerIdx, StateAccess&);
+            real (*ptr)(real, StateAccess&);
+            real (*derivPtr)(real, StateAccess&);
         };
 
         std::vector<ActivFunc> layerActivFunc;
@@ -203,7 +207,7 @@ public:
         {
             CostFuncConfig cfg;
             CostFuncType type;
-            Vector (*ptr)(const Vector&, const Vector&, StateAccess&);
+            real (*ptr)(real, real, StateAccess&);
         } costFunc;
 
         struct OptFunc
@@ -238,15 +242,26 @@ public:
 
         // All user definable functions
         // initFunc()
-        Vector activationFunction(unsigned int layerIdx, const Vector& x)
+        real activationFunction(real x, unsigned int layerIdx)
         {
-            return m_state.layerActivFunc[layerIdx].ptr(x, layerIdx, *this);
+            return m_state.layerActivFunc[layerIdx].ptr(x, *this);
         }
 
-        Vector activationFunctionDerivate(unsigned int layerIdx, const Vector& x)
+        real activationFunctionDerivate(real x, unsigned int layerIdx)
         {
-            return m_state.layerActivFunc[layerIdx].derivPtr(x, layerIdx, *this);
+            return m_state.layerActivFunc[layerIdx].derivPtr(x, *this);
         }
+
+        auto activationFunction(unsigned int layerIdx)
+        {
+            return m_state.layerActivFunc[layerIdx].ptr;
+        }
+
+        auto activationFunctionDerivate(unsigned int layerIdx)
+        {
+            return m_state.layerActivFunc[layerIdx].derivPtr;
+        }
+
         // costFunc()
         // optFunc()
 
@@ -266,14 +281,14 @@ public:
         friend void init_func_random_normal(StateAccess& net);
 
         // Activation function declarations
-        friend Vector activation_func_relu(const Vector& x, unsigned int layerIdx, StateAccess& net);
-        friend Vector activation_func_sigmoid(const Vector& x, unsigned int layerIdx, StateAccess& net);
-        friend Vector activation_func_tanh(const Vector& x, unsigned int layerIdx, StateAccess& net);
+        friend Vector activation_func_relu(const Vector& x, StateAccess& net);
+        friend Vector activation_func_sigmoid(const Vector& x, StateAccess& net);
+        friend Vector activation_func_tanh(const Vector& x, StateAccess& net);
 
         // Activation function derivative declarations
-        friend Vector activation_func_relu_deriv(const Vector& x, unsigned int layerIdx, StateAccess& net);
-        friend Vector activation_func_sigmoid_deriv(const Vector& x, unsigned int layerIdx, StateAccess& net);
-        friend Vector activation_func_tanh_deriv(const Vector& x, unsigned int layerIdx, StateAccess& net);
+        friend Vector activation_func_relu_deriv(const Vector& x, StateAccess& net);
+        friend Vector activation_func_sigmoid_deriv(const Vector& x, StateAccess& net);
+        friend Vector activation_func_tanh_deriv(const Vector& x, StateAccess& net);
 
         // Cost function declarations
         friend Vector cost_func_difference(const Vector& output, const Vector& target, StateAccess& net);

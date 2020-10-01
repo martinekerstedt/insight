@@ -59,23 +59,26 @@ public:
 
 // Forward declaration for Matrix Expressions
 // so that Matrix can use them
-template <typename E1, typename E2>
+template <class E1, class E2>
 class MatExprAdd;
 
-template <typename E1, typename E2>
+template <class E1, class E2>
 struct MatExprSub;
 
-template <typename E1, typename E2>
+template <class E1, class E2>
 struct MatExprEWiseMul;
 
-template <typename E1, typename E2>
+template <class E1, class E2>
 class MatExprMatMul;
 
-template <typename E>
+template <class E>
 class MatExprTrans;
 
-template <typename E>
+template<class func, class E, class... args>
 class MatExprApply;
+
+template<class func, class E1, class E2, class... args>
+class MatExprZip;
 
 
 // Helper functions to check if a type is a MatExpr
@@ -87,6 +90,11 @@ class MatExprApply;
 
 //template<typename E>
 //inline constexpr bool is_matexpr = is_matexpr_impl<E>::value;
+
+
+
+
+
 
 
 #endif // MATEXPR_BASE_H

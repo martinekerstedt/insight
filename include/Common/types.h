@@ -20,7 +20,6 @@ using real_3d_matrix = std::vector<real_matrix>;
                         + " | line:" + std::to_string(__LINE__) \
                         + " > " + ss.str()))
 
-#define NONE_UL     std::numeric_limits<unsigned long>::quiet_NaN()
 #define NONE_REAL   std::numeric_limits<real>::quiet_NaN()
 
 namespace InitializationFunction {
@@ -33,7 +32,7 @@ namespace InitializationFunction {
     {
         real mean = 0.0;
         real stddev = 1.0;
-        unsigned long seed = NONE_UL;
+        unsigned long seed = 0;
     };
 }
 
@@ -90,64 +89,50 @@ namespace OptimizeFunction {
 
 
 
-//namespace base {
+// Add check to skip threads if the sizes are too small
+#include <thread>
+#include <algorithm>
 
-//template <typename F>
-//struct named_operator_wrapper {
-//    F f;
-//};
+template <typename func>
+void parallel_for(func f, unsigned nb_elements)
+{
+#ifndef NDEBUG
+    f(0, nb_elements);
+#else
 
-//template <typename T, typename F>
-//struct named_operator_lhs {
-//    F f;
-//    T& value;
-//};
+    // Get number of threads
+    static unsigned nb_threads_hint = std::thread::hardware_concurrency();
+    static unsigned nb_threads = nb_threads_hint == 0 ? 4 : nb_threads_hint;
 
-//template <typename T, typename F>
-//inline named_operator_lhs<T, F> operator <(T& lhs, named_operator_wrapper<F> rhs) {
-//    return {rhs.f, lhs};
-//}
 
-//template <typename T, typename F>
-//inline named_operator_lhs<T const, F> operator <(T const& lhs, named_operator_wrapper<F> rhs) {
-//    return {rhs.f, lhs};
-//}
+    // Split evenly among threads
+    unsigned batch_size = nb_elements / nb_threads;
+    unsigned batch_remainder = nb_elements % nb_threads;
 
-//template <typename T1, typename T2, typename F>
-//inline auto operator >(named_operator_lhs<T1, F> const& lhs, T2 const& rhs)
-//    -> decltype(lhs.f(std::declval<T1>(), std::declval<T2>()))
-//{
-//    return lhs.f(lhs.value, rhs);
-//}
+    std::vector<std::thread> my_threads(nb_threads);
 
-//template <typename T1, typename T2, typename F>
-//inline auto operator >=(named_operator_lhs<T1, F> const& lhs, T2 const& rhs)
-//    -> decltype(lhs.value = lhs.f(std::declval<T1>(), std::declval<T2>()))
-//{
-//    return lhs.value = lhs.f(lhs.value, rhs);
-//}
 
-//template <typename F>
-//inline constexpr named_operator_wrapper<F> make_named_operator(F f) {
-//    return {f};
-//}
+    // Run threads
+    for (unsigned i = 0; i < nb_threads; ++i) {
 
-//} // namespace base
+        int start = i * batch_size;
 
-//namespace op {
-//    std::pair<int, int> divmod(int x, int y) {
-//        return { x / y, x % y };
-//    }
+        my_threads[i] = std::thread(f, start, start+batch_size);
+    }
 
-//    struct append {
-//        template <typename T>
-//        std::vector<T> operator ()(std::vector<T> const& vs, T const& v) const {
-//            auto copy(vs);
-//            copy.push_back(v);
-//            return copy;
-//        }
-//    };
-//} // namespace op
+
+    // Calc the remainders
+    unsigned start = nb_threads * batch_size;
+    f(start, start+batch_remainder);
+
+
+    // Wait for all threads to finish
+    std::for_each(my_threads.begin(), my_threads.end(), std::mem_fn(&std::thread::join));
+
+#endif
+}
+
+
 
 
 #endif // TYPES_H

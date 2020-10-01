@@ -55,6 +55,13 @@ target_include_directories(${PROJECT_NAME}
 
 
 
+# Link pthreads
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+
+
+
 # Make googletest
 ADD_SUBDIRECTORY(extern/googletest)
 
