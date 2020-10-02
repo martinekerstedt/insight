@@ -20,7 +20,7 @@ struct RequireOverride {
 };
 
 
-template <typename E>
+template <class E>
 class MatExpr
 {
 
@@ -79,22 +79,6 @@ class MatExprApply;
 
 template<class func, class E1, class E2, class... args>
 class MatExprZip;
-
-
-// Helper functions to check if a type is a MatExpr
-//template<typename E>
-//struct is_matexpr_impl : std::false_type {};
-
-//template<typename E>
-//struct is_matexpr_impl<MatExpr<E> > : std::true_type {};
-
-//template<typename E>
-//inline constexpr bool is_matexpr = is_matexpr_impl<E>::value;
-
-
-
-
-
 
 
 #endif // MATEXPR_BASE_H

@@ -137,7 +137,7 @@ protected:
 
 // Binary expressions
 // Addition
-template <typename E1, typename E2>
+template <class E1, class E2>
 class MatExprAdd : public MatExprBase<true, E1, E2>
 {
 //    using MatExprBase<true, E1, E2>::m_lhs;
@@ -187,7 +187,7 @@ public:
 
 
 // Subtraction
-template <typename E1, typename E2>
+template <class E1, class E2>
 struct MatExprSub : public MatExprAdd<E1, E2>
 {
     MatExprSub(const E1& lhs, const E2& rhs) :
@@ -209,7 +209,7 @@ struct MatExprSub : public MatExprAdd<E1, E2>
 
 
 // Division, only defined for Mat / Num
-template <typename E1, typename E2>
+template <class E1, class E2>
 struct MatExprDiv : public MatExprAdd<E1, E2>
 {
     MatExprDiv(const E1& lhs, const E2& rhs) :
@@ -227,7 +227,7 @@ struct MatExprDiv : public MatExprAdd<E1, E2>
 
 
 // Element wise multiplication
-template <typename E1, typename E2>
+template <class E1, class E2>
 struct MatExprEWiseMul : public MatExprAdd<E1, E2>
 {
     MatExprEWiseMul(const E1& lhs, const E2& rhs) :
@@ -251,7 +251,7 @@ struct MatExprEWiseMul : public MatExprAdd<E1, E2>
 
 
 // Martrix multiplication
-template <typename E1, typename E2>
+template <class E1, class E2>
 class MatExprMatMul : public MatExprBase<false, E1, E2>
 {
 
@@ -299,7 +299,7 @@ public:
 
 // Unary expressions
 // Transposition
-template <typename E>
+template <class E>
 class MatExprTrans : public MatExprBase<false, E>
 {
 
@@ -334,82 +334,38 @@ public:
 };
 
 
-//template<class... args, int... Is>
-//using tesargs = (std::get<Is>(args)...);
-
-//template<class T, class... args>
-//using thePrams = int;
-
-//template<class... args>
-//using theInts = std::index_sequence_for<args...>;
-
-//template<class... args>
-//using toPack = thePrams<int, theInts<args...> >;
-
-//template<class... args>
-//struct toPack : std::get<theInts<args...> >(args)... {};
-
-//template<class func, class... args>
-//struct toPack std::get<theInts<args...> >(args)...;
-
-//template<class... args>
-//auto p = [](int a) -> int { return a + a; };
-
-//using P = decltype(p);
-
-
-
 // Apply
-template<typename func, typename E, typename... args>
+template<class E, class func, class... args>
 class MatExprApply : public MatExprBase<true, E>
 {
     using args_seq = std::index_sequence_for<args...>;
 
 public:
-    MatExprApply(func f, const E& expr, const args&... a) :
+    MatExprApply(const E& expr, func f, const args&... a) :
         MatExprBase<true, E>(expr),
         m_func(f),
-        m_args(const_cast<args&>(a)...)
-//        m_args(a...)
-    {
-//        if constexpr (sizeof... (a) == 0) {
-//            auto b = sizeof... (a) == 0 ?
-//        }
-    }
-
-    template<class T, T... Is>
-    auto apply(real val, std::integer_sequence<T, Is...>) const
-//    auto apply(real val)
-    {
-        return m_func(val, std::get<Is>(m_args)...);
-    }
+        m_args(const_cast<args&>(a)...) {}
 
     real operator()(const unsigned row, const unsigned col) const
     {
         if (this->m_cached) {
             return this->m_tmp(row, col);
         } else {
+
             if constexpr (sizeof... (args) == 0) {
+
                 return m_func(this->m_lhs(row, col));
             } else {
+
                 return apply(this->m_lhs(row, col), std::index_sequence_for<args...>{});
-//                return apply<args_seq>(this->m_lhs(row, col));
             }
         }
+    }
 
-
-//        apply(this->m_tmp(row, col), std::index_sequence_for<args...>());
-
-
-//        std::apply(
-//        [&](args...) {
-//          return m_func(this->m_lhs(col, row), 8);
-//        }, m_args);
-
-        // activFunc(real, int);
-        // activFunc(this->m_lhs(col, row), int);
-
-        // std::apply(func, tuple);
+    template<class T, T... Is>
+    auto apply(real val, std::integer_sequence<T, Is...>) const
+    {
+        return m_func(val, std::get<Is>(m_args)...);
     }
 
     unsigned rows() const
@@ -436,37 +392,37 @@ private:
 
 
 // Zip
-template<class func, class E1, class E2, class... args>
+template<class E1, class E2, class func, class... args>
 class MatExprZip : public MatExprBase<true, E1, E2>
 {
     using args_seq = std::index_sequence_for<args...>;
 
 public:
-    MatExprZip(func f, const E1& lhs, const E2& rhs, const args&... a) :
+    MatExprZip(const E1& lhs, const E2& rhs, func f, const args&... a) :
         MatExprBase<true, E1, E2>(lhs, rhs),
         m_func(f),
-        m_args(const_cast<args&>(a)...)
-    {
-
-    }
-
-    template<class T, T... Is>
-    auto apply(real a, real b, std::integer_sequence<T, Is...>) const
-    {
-        return m_func(a, b, std::get<Is>(m_args)...);
-    }
+        m_args(const_cast<args&>(a)...) {}
 
     real operator()(const unsigned row, const unsigned col) const
     {
         if (this->m_cached) {
             return this->m_tmp(row, col);
         } else {
+
             if constexpr (sizeof... (args) == 0) {
+
                 return m_func(this->m_lhs(row, col), this->m_rhs(row, col));
             } else {
+
                 return apply(this->m_lhs(row, col), this->m_rhs(row, col), std::index_sequence_for<args...>{});
             }
         }
+    }
+
+    template<class T, T... Is>
+    auto apply(real a, real b, std::integer_sequence<T, Is...>) const
+    {
+        return m_func(a, b, std::get<Is>(m_args)...);
     }
 
     unsigned rows() const
@@ -570,20 +526,20 @@ private:
 // conditionally removes the function declaration if T is not an arithmetic type
 //
 // Addition
-template <typename E1, typename E2>
+template <class E1, class E2>
 auto operator+(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
 {
     assert(lhs.size() == rhs.size());
     return MatExprAdd<E1, E2>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
 }
 
-template <typename E1>
+template <class E1>
 auto operator+(const MatExpr<E1>& lhs, const real& rhs)
 {
     return MatExprAdd<E1, real>(*static_cast<const E1*>(&lhs), rhs);
 }
 
-template <typename E2>
+template <class E2>
 auto operator+(const real& lhs, const MatExpr<E2>& rhs)
 {
     return MatExprAdd<real, E2>(lhs, *static_cast<const E2*>(&rhs));
@@ -591,14 +547,14 @@ auto operator+(const real& lhs, const MatExpr<E2>& rhs)
 
 
 // Subtraction, not defined for Num - Mat
-template <typename E1, typename E2>
+template <class E1, class E2>
 auto operator-(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
 {
     assert(lhs.size() == rhs.size());
     return MatExprSub<E1, E2>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
 }
 
-template <typename E1>
+template <class E1>
 auto operator-(const MatExpr<E1>& lhs, const real& rhs)
 {
     return MatExprSub<E1, real>(*static_cast<const E1*>(&lhs), rhs);
@@ -606,7 +562,7 @@ auto operator-(const MatExpr<E1>& lhs, const real& rhs)
 
 
 // Division, only defined for Mat / Num
-template <typename E1>
+template <class E1>
 auto operator/(const MatExpr<E1>& lhs, const real& rhs)
 {
     return MatExprDiv<E1, real>(*static_cast<const E1*>(&lhs), rhs);
@@ -614,7 +570,7 @@ auto operator/(const MatExpr<E1>& lhs, const real& rhs)
 
 
 // Matrix multiplication
-template <typename E1, typename E2>
+template <class E1, class E2>
 auto operator*(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
 {
     assert(lhs.cols() == rhs.rows());
@@ -623,23 +579,18 @@ auto operator*(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
 
 
 // Matrix/Numeric multiplication
-template <typename E1>
+template <class E1>
 auto operator*(const MatExpr<E1>& lhs, const real& rhs)
 {
     return MatExprEWiseMul<E1, real>(*static_cast<const E1*>(&lhs), rhs);
 }
 
-template <typename E2>
+template <class E2>
 auto operator*(const real& lhs, const MatExpr<E2>& rhs)
 {
     return MatExprEWiseMul<real, E2>(lhs, *static_cast<const E2*>(&rhs));
 }
 
-//template <typename func, typename E>
-//auto apply(func f, const MatExpr<E>& expr)
-//{
-//    return MatExprApply<func, E>(f, *static_cast<E*>(&expr));
-//}
 
 #endif // MATEXPR_H
 

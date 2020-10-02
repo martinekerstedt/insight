@@ -28,11 +28,14 @@
 
 
 // Might intorduce preprocessing and postprocessing functions
-// softMax, convultions, etc.
+// softMax, convolutions, etc.
 
 
 // Should only have to save state of network to be able to load later
 // State must contain everything that is need to save/load
+
+
+// Allow to have user defined functions that dont have net as an arg
 
 
 class NeuralNet
@@ -60,13 +63,6 @@ public:
 
 
     const State& state();
-
-//    Vector activationFunction(unsigned int layerIdx, const Vector& x);
-//    Vector activationFunctionDerivate(unsigned int layerIdx, const Vector& x);
-//    real activationFunction(real x, unsigned int layerIdx);
-//    real activationFunctionDerivate(real x, unsigned int layerIdx);
-//    auto activationFunction(unsigned int layerIdx); // return function pointer
-//    auto activationFunctionDerivate(unsigned int layerIdx);
 
     void setInitializationFunction(void (*initFunc)(StateAccess&));
     void setInitializationFunction(InitializationFunction::ALL_ZERO init_func);

@@ -25,7 +25,8 @@ public:
     Matrix(const std::vector<real>& vec);
     Matrix(const std::initializer_list<real>& list);
     Matrix(const std::initializer_list<std::initializer_list<real>>& row_list);
-    template <typename E>
+
+    template <class E>
     Matrix(const MatExpr<E>& expr) :
         m_rows(expr.rows()),
         m_cols(expr.cols())
@@ -37,39 +38,29 @@ public:
     // Matrix/Matrix operators
     bool operator==(const Matrix& rhs) const;                                         // vec: exactly same
     bool operator!=(const Matrix& rhs) const;                                         // vec: exactly same
-    template <typename E>
+    template <class E>
     Matrix& operator+=(const MatExpr<E>& rhs)
     {
         *this = MatExprAdd<Matrix, E>(*this, *static_cast<const E*>(&rhs));
         return (*this);
     }
 
-    template <typename E>
+    template <class E>
     Matrix& operator-=(const MatExpr<E>& rhs)
     {
         *this = MatExprSub<Matrix, E>(*this, *static_cast<const E*>(&rhs));
         return (*this);
     }
 
-    template <typename E>
+    template <class E>
     Matrix& operator*=(const MatExpr<E>& rhs)
     {
         *this = MatExprMatMul<Matrix, E>(*this, *static_cast<const E*>(&rhs));
         return (*this);
     }
 
-//    Matrix operator+(const Matrix& rhs) const;                                         // vec: exactly same
-//    Matrix operator-(const Matrix& rhs) const;                                        // vec: exactly same
-//    Matrix operator*(const Matrix& rhs) const;                                        // vec: exactly same
-//    Matrix& operator+=(const Matrix& rhs);                                      // vec: exactly same
-//    Matrix& operator-=(const Matrix& rhs);                                      // vec: exactly same
-//    Matrix& operator*=(const Matrix& rhs);                                      // vec: exactly same
 
     // Matrix/scalar operators
-//    Matrix operator+(const real& rhs) const;                                          // vec: exactly same
-//    Matrix operator-(const real& rhs) const;                                          // vec: exactly same
-//    Matrix operator*(const real& rhs) const;                                          // vec: exactly same
-//    Matrix operator/(const real& rhs) const;                                          // vec: exactly same
     Matrix& operator+=(const real& rhs);                                        // vec: exactly same
     Matrix& operator-=(const real& rhs);                                        // vec: exactly same
     Matrix& operator*=(const real& rhs);                                        // vec: exactly same
@@ -90,8 +81,6 @@ public:
         return MatExprEWiseMul<E1, E2>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
     }
 
-//    Matrix transpose() const;                                                         // vec: exactly same
-//    Matrix& multiplyElemWise(const Matrix& rhs);                                // vec: exactly same
 
     // Access
     std::vector<real>& vec();               // Remove, only access .data()      // vec: exactly same
@@ -134,7 +123,7 @@ public:
         return 1;
     }
 
-    template <typename E>
+    template <class E>
     Matrix operator=(const MatExpr<E>& rhs)
     {
         m_rows = rhs.rows();
@@ -146,7 +135,7 @@ public:
         return *this;
     }
 
-    template <typename E>
+    template <class E>
     void evalExpr(const MatExpr<E>& rhs)
     {
         // Cache if needed
@@ -162,76 +151,29 @@ public:
     }
 
 
+    template<class E, class func>
+    static auto apply(const MatExpr<E>& expr, func f)
+    {
+        return MatExprApply<E, func>(*static_cast<const E*>(&expr), f);
+    }
 
-//    template<typename T, typename... Ts>
-//    struct contains : std::disjunction<std::is_same<T, Ts>...>
-//    {};
-
-//    template<typename T, typename... Ts>
-//    struct containsMatExpr : std::disjunction<std::is_same<MatExpr<T>, Ts>...>
-//    {};
-
-//    template <typename T, typename... Ts>
-//    struct Index;
-
-//    template <typename T, typename... Ts>
-//    struct Index<T, T, Ts...> : std::integral_constant<std::size_t, 0> {};
-
-//    template <typename T, typename U, typename... Ts>
-//    struct Index<T, U, Ts...> : std::integral_constant<std::size_t, 1 + Index<T, Ts...>::value> {};
-
-//    template <typename E>
-//    struct Index<T, U, Ts...> : std::integral_constant<std::size_t, 1 + Index<T, Ts...>::value> {};
-
-//    template<int N, typename... Ts> using NthTypeOf =
-//            typename std::tuple_element<N, std::tuple<Ts...>>::type;
-
-
-//    template<class E>
-//    constexpr int ac = Index<MatExpr<E>, args...>::value;
-
-//    using ab = NthTypeOf<ac, args...>;
-
-
-    // Matrix::apply(net.activFunc, expr, funcArgs);
-    // Matrix::apply(net.activFunc, funcArgs, expr);
-    // Matrix::apply(net.activFunc, expr);
-    template<class func, class E, class... args>
-    static auto apply(func f, const MatExpr<E>& expr, const args&... a)
+    template<class E, class func, class... args>
+    static auto apply(const MatExpr<E>& expr, func f, const args&... a)
     {        
-        return MatExprApply<func, E, args...>(f, *static_cast<const E*>(&expr), a...);
+        return MatExprApply<E, func, args...>(*static_cast<const E*>(&expr), f, a...);
     }
 
-//    template<class func, class... args, class E>
-//    static auto apply(func f, const args&... a, const MatExpr<E>& expr)
-//    {
-//        return MatExprApply<func, E, args...>(f, *static_cast<const E*>(&expr), a...);
-//    }
-
-    template<class func, class E>
-    static auto apply(func f, const MatExpr<E>& expr)
+    template<class E1, class E2, class func>
+    static auto zip(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs, func f)
     {
-        return MatExprApply<func, E>(f, *static_cast<const E*>(&expr));
+        return MatExprZip<E1, E2, func>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs), f);
     }
 
-    template<class func, class E1, class E2, class... args>
-    static auto zip(func f, const MatExpr<E1>& lhs, const MatExpr<E2>& rhs, const args&... a)
+    template<class E1, class E2, class func, class... args>
+    static auto zip(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs, func f, const args&... a)
     {
-        return MatExprZip<func, E1, E2, args...>(f, *static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs), a...);
-    }
-
-//    template<class func, class... args, class E1, class E2>
-//    static auto zip(func f, const args&... a, const MatExpr<E>& expr)
-//    {
-//        return MatExprApply<func, E, args...>(f, *static_cast<const E*>(&expr), a...);
-//    }
-
-    template<class func, class E1, class E2>
-    static auto zip(func f, const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
-    {
-        return MatExprZip<func, E1, E2>(f, *static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
-    }
-
+        return MatExprZip<E1, E2, func, args...>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs), f, a...);
+    }    
 
 
 protected:
