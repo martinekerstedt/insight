@@ -10,55 +10,10 @@
 class Matrix;
 
 
-
-struct RequireOverride {
-    virtual real operator()(const unsigned row, const unsigned col) const = 0;
-    virtual unsigned rows() const = 0;
-    virtual unsigned cols() const = 0;
-    virtual bool sourceOk(const Matrix& destMat) = 0;
-    virtual unsigned evalCost() const = 0;
-};
-
-
-template <class E>
-class MatExpr
-{
-
-public:
-    real operator()(const unsigned row, const unsigned col) const
-    {
-        return static_cast<const E&>(*this)(row, col);
-    }
-
-    unsigned size() const
-    {
-        return static_cast<const E&>(*this).rows()*static_cast<const E&>(*this).cols();
-    }
-
-    unsigned rows() const
-    {
-        return static_cast<const E&>(*this).rows();
-    }
-
-    unsigned cols() const
-    {
-        return static_cast<const E&>(*this).cols();
-    }
-
-    bool sourceOk(const Matrix& destMat)
-    {
-        return static_cast<E&>(*this).sourceOk(destMat);
-    }
-
-    unsigned evalCost() const
-    {
-        return static_cast<const E&>(*this).evalCost();
-    }
-};
-
-
 // Forward declaration for Matrix Expressions
 // so that Matrix can use them
+struct MatExpr {}; // Might add override requirements here
+
 template <class E1, class E2>
 class MatExprAdd;
 
@@ -79,6 +34,16 @@ class MatExprApply;
 
 template<class func, class E1, class E2, class... args>
 class MatExprZip;
+
+// Is true for T = Matrix and T = Vector
+template <class T>
+constexpr bool is_mat = std::is_base_of_v<Matrix, std::remove_cvref_t<T> >;
+
+template <class T>
+constexpr bool is_expr =
+        std::is_base_of_v<MatExpr, std::remove_cvref_t<T> >
+        || is_mat<T>;
+
 
 
 #endif // MATEXPR_BASE_H

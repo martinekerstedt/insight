@@ -13,7 +13,8 @@ class Vector;
 
 // TODO: Move sematics https://stackoverflow.com/questions/3106110/what-is-move-semantics
 
-class Matrix : public MatExpr<Matrix>
+//class Matrix : public MatExpr<Matrix>
+class Matrix
 {
 public:
     Matrix();
@@ -26,8 +27,8 @@ public:
     Matrix(const std::initializer_list<real>& list);
     Matrix(const std::initializer_list<std::initializer_list<real>>& row_list);
 
-    template <class E>
-    Matrix(const MatExpr<E>& expr) :
+    template <class E> requires(is_expr<E>)
+    Matrix(const E& expr) :
         m_rows(expr.rows()),
         m_cols(expr.cols())
     {
@@ -38,24 +39,25 @@ public:
     // Matrix/Matrix operators
     bool operator==(const Matrix& rhs) const;                                         // vec: exactly same
     bool operator!=(const Matrix& rhs) const;                                         // vec: exactly same
-    template <class E>
-    Matrix& operator+=(const MatExpr<E>& rhs)
+
+    template <class E> requires(is_expr<E>)
+    Matrix& operator+=(const E& rhs)
     {
-        *this = MatExprAdd<Matrix, E>(*this, *static_cast<const E*>(&rhs));
+        *this = MatExprAdd<Matrix, E>(*this, rhs);
         return (*this);
     }
 
-    template <class E>
-    Matrix& operator-=(const MatExpr<E>& rhs)
+    template <class E> requires(is_expr<E>)
+    Matrix& operator-=(const E& rhs)
     {
-        *this = MatExprSub<Matrix, E>(*this, *static_cast<const E*>(&rhs));
+        *this = MatExprSub<Matrix, E>(*this, rhs);
         return (*this);
     }
 
-    template <class E>
-    Matrix& operator*=(const MatExpr<E>& rhs)
+    template <class E> requires(is_expr<E>)
+    Matrix& operator*=(const E& rhs)
     {
-        *this = MatExprMatMul<Matrix, E>(*this, *static_cast<const E*>(&rhs));
+        *this = MatExprMatMul<Matrix, E>(*this, rhs);
         return (*this);
     }
 
@@ -69,16 +71,16 @@ public:
     // Matrix operators
     MatExprTrans<Matrix> trans() const;                                                       // vec: exactly same
 
-    template <class E>
-    auto mulEWise(const MatExpr<E>& rhs)
+    template <class E> requires(is_expr<E>)
+    auto mulEWise(const E& rhs)
     {
-        return MatExprEWiseMul<Matrix, E>(*this, *static_cast<const E*>(&rhs));
+        return MatExprEWiseMul<Matrix, E>(*this, rhs);
     }
 
-    template <class E1, class E2>
-    static auto mulEWise(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
+    template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
+    static auto mulEWise(const E1& lhs, const E2& rhs)
     {
-        return MatExprEWiseMul<E1, E2>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
+        return MatExprEWiseMul<E1, E2>(lhs, rhs);
     }
 
 
@@ -123,8 +125,8 @@ public:
         return 1;
     }
 
-    template <class E>
-    Matrix operator=(const MatExpr<E>& rhs)
+    template <class E> requires(is_expr<E>)
+    Matrix operator=(const E& rhs)
     {
         m_rows = rhs.rows();
         m_cols = rhs.cols();
@@ -135,11 +137,11 @@ public:
         return *this;
     }
 
-    template <class E>
-    void evalExpr(const MatExpr<E>& rhs)
+    template <class E> requires(is_expr<E>)
+    void evalExpr(const E& rhs)
     {
         // Cache if needed
-        const_cast<MatExpr<E>&>(rhs).sourceOk(*this);
+        const_cast<E&>(rhs).sourceOk(*this);
 
         // Eval
         parallel_for([&](unsigned start, unsigned end)
@@ -151,29 +153,30 @@ public:
     }
 
 
-    template<class E, class func>
-    static auto apply(const MatExpr<E>& expr, func f)
+    template<class E, class func> requires(is_expr<E>)
+    static auto apply(const E& expr, func f)
     {
-        return MatExprApply<E, func>(*static_cast<const E*>(&expr), f);
+        return MatExprApply<E, func>(expr, f);
     }
 
-    template<class E, class func, class... args>
-    static auto apply(const MatExpr<E>& expr, func f, const args&... a)
-    {        
-        return MatExprApply<E, func, args...>(*static_cast<const E*>(&expr), f, a...);
+    template<class E, class func, class... args> requires(is_expr<E>)
+    static auto apply(const E& expr, func f, const args&... a)
+    {
+        return MatExprApply<E, func, args...>(expr, f, a...);
     }
 
-    template<class E1, class E2, class func>
-    static auto zip(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs, func f)
+    template<class E1, class E2, class func> requires(is_expr<E1> && is_expr<E2>)
+    static auto zip(const E1& lhs, const E2& rhs, func f)
     {
-        return MatExprZip<E1, E2, func>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs), f);
+        return MatExprZip<E1, E2, func>(lhs, rhs, f);
     }
 
-    template<class E1, class E2, class func, class... args>
-    static auto zip(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs, func f, const args&... a)
+    template<class E1, class E2, class func, class... args> requires(is_expr<E1> && is_expr<E2>)
+    static auto zip(const E1& lhs, const E2& rhs, func f, const args&... a)
     {
-        return MatExprZip<E1, E2, func, args...>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs), f, a...);
-    }    
+        return MatExprZip<E1, E2, func, args...>(lhs, rhs, f, a...);
+    }
+
 
 
 protected:

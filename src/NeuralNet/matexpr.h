@@ -24,7 +24,7 @@
 // Cache the result of a NSTO if either operand contain the destination
 
 template <bool sto, class E1, class E2 = void*>
-class MatExprBase : public MatExpr<MatExprBase<sto, E1, E2> >
+class MatExprBase : public virtual MatExpr
 {
 
 public:
@@ -138,9 +138,8 @@ protected:
 // Binary expressions
 // Addition
 template <class E1, class E2>
-class MatExprAdd : public MatExprBase<true, E1, E2>
+class MatExprAdd : public MatExprBase<true, E1, E2>, virtual MatExpr
 {
-//    using MatExprBase<true, E1, E2>::m_lhs;
 
 public:
     MatExprAdd(const E1& lhs, const E2& rhs) :
@@ -188,7 +187,7 @@ public:
 
 // Subtraction
 template <class E1, class E2>
-struct MatExprSub : public MatExprAdd<E1, E2>
+struct MatExprSub : public MatExprAdd<E1, E2>, virtual MatExpr
 {
     MatExprSub(const E1& lhs, const E2& rhs) :
         MatExprAdd<E1, E2>(lhs, rhs) {}
@@ -210,7 +209,7 @@ struct MatExprSub : public MatExprAdd<E1, E2>
 
 // Division, only defined for Mat / Num
 template <class E1, class E2>
-struct MatExprDiv : public MatExprAdd<E1, E2>
+struct MatExprDiv : public MatExprAdd<E1, E2>, virtual MatExpr
 {
     MatExprDiv(const E1& lhs, const E2& rhs) :
         MatExprAdd<E1, E2>(lhs, rhs) {}
@@ -228,7 +227,7 @@ struct MatExprDiv : public MatExprAdd<E1, E2>
 
 // Element wise multiplication
 template <class E1, class E2>
-struct MatExprEWiseMul : public MatExprAdd<E1, E2>
+struct MatExprEWiseMul : public MatExprAdd<E1, E2>, virtual MatExpr
 {
     MatExprEWiseMul(const E1& lhs, const E2& rhs) :
         MatExprAdd<E1, E2>(lhs, rhs) {}
@@ -252,7 +251,7 @@ struct MatExprEWiseMul : public MatExprAdd<E1, E2>
 
 // Martrix multiplication
 template <class E1, class E2>
-class MatExprMatMul : public MatExprBase<false, E1, E2>
+class MatExprMatMul : public MatExprBase<false, E1, E2>, virtual MatExpr
 {
 
 public:
@@ -295,12 +294,24 @@ public:
     }
 };
 
+template <class E>
+class MatExprEWiseMul2 : public virtual MatExpr
+{
+
+public:
+    MatExprEWiseMul2(const E& e) :
+        expr(e) {}
+
+    const E& expr;
+
+};
+
 
 
 // Unary expressions
 // Transposition
 template <class E>
-class MatExprTrans : public MatExprBase<false, E>
+class MatExprTrans : public MatExprBase<false, E>, virtual MatExpr
 {
 
 public:
@@ -336,7 +347,7 @@ public:
 
 // Apply
 template<class E, class func, class... args>
-class MatExprApply : public MatExprBase<true, E>
+class MatExprApply : public MatExprBase<true, E>, virtual MatExpr
 {
     using args_seq = std::index_sequence_for<args...>;
 
@@ -393,7 +404,7 @@ private:
 
 // Zip
 template<class E1, class E2, class func, class... args>
-class MatExprZip : public MatExprBase<true, E1, E2>
+class MatExprZip : public MatExprBase<true, E1, E2>, virtual MatExpr
 {
     using args_seq = std::index_sequence_for<args...>;
 
@@ -521,75 +532,112 @@ private:
 
 
 // Operators
-//
-// The template signature "typename = std::enable_if_t<std::is_arithmetic_v<T>>"
-// conditionally removes the function declaration if T is not an arithmetic type
-//
 // Addition
-template <class E1, class E2>
-auto operator+(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
+template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
+auto operator+(const E1& lhs, const E2& rhs)
 {
-    assert(lhs.size() == rhs.size());
-    return MatExprAdd<E1, E2>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
+    assert(lhs.rows() == rhs.rows());
+    assert(lhs.cols() == rhs.cols());
+    return MatExprAdd<E1, E2>(lhs, rhs);
 }
 
-template <class E1>
-auto operator+(const MatExpr<E1>& lhs, const real& rhs)
+template <class E1> requires(is_expr<E1>)
+auto operator+(const E1& lhs, const real& rhs)
 {
-    return MatExprAdd<E1, real>(*static_cast<const E1*>(&lhs), rhs);
+    return MatExprAdd<E1, real>(lhs, rhs);
 }
 
-template <class E2>
-auto operator+(const real& lhs, const MatExpr<E2>& rhs)
+template <class E2> requires(is_expr<E2>)
+auto operator+(const real& lhs, const E2& rhs)
 {
-    return MatExprAdd<real, E2>(lhs, *static_cast<const E2*>(&rhs));
-}
-
-
-// Subtraction, not defined for Num - Mat
-template <class E1, class E2>
-auto operator-(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
-{
-    assert(lhs.size() == rhs.size());
-    return MatExprSub<E1, E2>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
-}
-
-template <class E1>
-auto operator-(const MatExpr<E1>& lhs, const real& rhs)
-{
-    return MatExprSub<E1, real>(*static_cast<const E1*>(&lhs), rhs);
+    return MatExprAdd<real, E2>(lhs, rhs);
 }
 
 
-// Division, only defined for Mat / Num
-template <class E1>
-auto operator/(const MatExpr<E1>& lhs, const real& rhs)
+// Subtraction
+template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
+auto operator-(const E1& lhs, const E2& rhs)
 {
-    return MatExprDiv<E1, real>(*static_cast<const E1*>(&lhs), rhs);
+    assert(lhs.rows() == rhs.rows());
+    assert(lhs.cols() == rhs.cols());
+    return MatExprSub<E1, E2>(lhs, rhs);
+}
+
+template <class E1> requires(is_expr<E1>)
+auto operator-(const E1& lhs, const real& rhs)
+{
+    return MatExprSub<E1, real>(lhs, rhs);
+}
+
+template <class E2> requires(is_expr<E2>)
+auto operator-(const real& lhs, const E2& rhs)
+{
+    return MatExprSub<real, E2>(lhs, rhs);
+}
+
+
+// Division
+template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
+auto operator/(const E1& lhs, const E2& rhs)
+{
+    assert(lhs.rows() == rhs.rows());
+    assert(lhs.cols() == rhs.cols());
+    return MatExprDiv<E1, E2>(lhs, rhs);
+}
+
+template <class E1> requires(is_expr<E1>)
+auto operator/(const E1& lhs, const real& rhs)
+{
+    return MatExprDiv<E1, real>(lhs, rhs);
+}
+
+template <class E2> requires(is_expr<E2>)
+auto operator/(const real& lhs, const E2& rhs)
+{
+    return MatExprDiv<real, E2>(lhs, rhs);
 }
 
 
 // Matrix multiplication
-template <class E1, class E2>
-auto operator*(const MatExpr<E1>& lhs, const MatExpr<E2>& rhs)
+template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
+auto operator*(const E1& lhs, const E2& rhs)
 {
     assert(lhs.cols() == rhs.rows());
-    return MatExprMatMul<E1, E2>(*static_cast<const E1*>(&lhs), *static_cast<const E2*>(&rhs));
+    return MatExprMatMul<E1, E2>(lhs, rhs);
+}
+
+
+// Matrix element wise multiplication, mat ** mat
+template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
+auto operator*(const E1& lhs, const MatExprEWiseMul2<E2>& rhs)
+{
+    assert(lhs.rows() == rhs.rows());
+    assert(lhs.cols() == rhs.cols());
+    return MatExprEWiseMul<E1, E2>(lhs, rhs.expr);
+}
+
+template <class E2> requires(is_expr<E2>)
+auto operator*(const E2& rhs)
+{
+    return MatExprEWiseMul2<E2>(rhs);
 }
 
 
 // Matrix/Numeric multiplication
-template <class E1>
-auto operator*(const MatExpr<E1>& lhs, const real& rhs)
+template <class E1> requires(is_expr<E1>)
+auto operator*(const E1& lhs, const real& rhs)
 {
-    return MatExprEWiseMul<E1, real>(*static_cast<const E1*>(&lhs), rhs);
+    return MatExprEWiseMul<E1, real>(lhs, rhs);
 }
 
-template <class E2>
-auto operator*(const real& lhs, const MatExpr<E2>& rhs)
+template <class E2> requires(is_expr<E2>)
+auto operator*(const real& lhs, const E2& rhs)
 {
-    return MatExprEWiseMul<real, E2>(lhs, *static_cast<const E2*>(&rhs));
+    return MatExprEWiseMul<real, E2>(lhs, rhs);
 }
+
+
+
 
 
 #endif // MATEXPR_H

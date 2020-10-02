@@ -12,8 +12,9 @@ public:
     Vector(const Matrix& mat);
     Vector(const std::vector<real>& vec);
     Vector(const std::initializer_list<real>& list);
-    template <typename E>
-    Vector(const MatExpr<E>& expr) : Matrix(expr) {}
+
+    template <typename E> requires(is_expr<E>)
+    Vector(const E& expr) : Matrix(expr) {}
 
     void pushBack(const real& elem);
     void popBack();
@@ -21,8 +22,8 @@ public:
     real front() const;
     real back() const;
 
-    template <typename E>
-    Vector operator=(const MatExpr<E>& rhs)
+    template <typename E> requires(is_expr<E>)
+    Vector operator=(const E& rhs)
     {
         Matrix::operator=(rhs);
 

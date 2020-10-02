@@ -190,11 +190,14 @@ public:
         } initFunc;
 
         struct ActivFunc
-        {
+        {            
             ActivFuncConfig cfg;
             ActivFuncType type;
+//            real (*ptr)(real);
+//            real (*derivPtr)(real);
             real (*ptr)(real, StateAccess&);
             real (*derivPtr)(real, StateAccess&);
+//            real operator()(real x) { return ptr(x); }
         };
 
         std::vector<ActivFunc> layerActivFunc;
