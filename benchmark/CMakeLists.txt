@@ -3,13 +3,7 @@
 # Set cmake minimum version
 
 # Project name
-project(test_insight LANGUAGES CXX)
-
-
-
-# Make googletest, before using it here
-#ADD_SUBDIRECTORY(${TOP_LEVEL_DIR}/extern/googletest)
-
+project(benchmark_insight LANGUAGES CXX)
 
 
 # Define output directories
@@ -22,10 +16,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin)
 # Define target
 add_executable(${PROJECT_NAME}
     src/main.cpp
-    src/squaretest.cpp
-    src/neuralnettest.cpp
-    src/vectortest.cpp
-    src/matrixtest.cpp
 )
 
 
@@ -38,9 +28,9 @@ target_include_directories(${PROJECT_NAME}
 
 
 
-# Link, include paths/files are built-in to insight targe
+# Link, include paths/files are built-in to insight target
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         insight
-        gtest
+        benchmark_main
 )

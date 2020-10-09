@@ -35,18 +35,36 @@
 
 
 testing::AssertionResult equal_matricies(Matrix mat1, Matrix mat2)
-{
+{    
     std::string mat1_str = mat1.str();
     std::string mat2_str = mat2.str();
 
-
-    if (mat1_str == mat2_str) {
-        return testing::AssertionSuccess();
-    } else {
+    if (mat1.rows() != mat2.rows()) {
         return testing::AssertionFailure() << "\n\nExpected:\n" << mat1_str
                                            << "\nBut got:\n" << mat2_str
                                            << std::endl;
     }
+
+    if (mat1.cols() != mat2.cols()) {
+        return testing::AssertionFailure() << "\n\nExpected:\n" << mat1_str
+                                           << "\nBut got:\n" << mat2_str
+                                           << std::endl;
+    }
+
+    for (unsigned i = 0; i < mat1.size(); ++i) {
+        const ::testing::internal::FloatingPoint<real> lhs(mat1(i)), rhs(mat2(i));
+
+        if (!lhs.AlmostEquals(rhs)) {
+            return testing::AssertionFailure() << "\n\n\nExpected:\n" << mat1_str
+                                               << "\nBut got:\n" << mat2_str
+                                               << "\nError at (" << i / mat1.cols() << ", " << i % mat1.cols() << ")\n"
+                                               << "Expected: " << mat1(i) << "\n"
+                                               << "But got: " << mat2(i) << "\n\n"
+                                               << std::endl;
+        }
+    }
+
+    return testing::AssertionSuccess();
 }
 
 
@@ -57,6 +75,7 @@ TEST(MatrixConstructor, Default)
 
     EXPECT_EQ(mat.rows(), 0);
     EXPECT_EQ(mat.cols(), 0);
+    EXPECT_EQ(mat.vec().size(), 0);
 }
 
 TEST(MatrixConstructor, RowsCols)
@@ -266,39 +285,18 @@ TEST(MatrixMatrixOperators, Multiplication)
 {
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
-    Matrix mat3(MAT_4_ROWS, MAT_4_COLS, MAT_4);
-    Vector vec(VEC_1);
 
-    Matrix expected_mat1(4, 4, {1406.8680, -1098.2114, -2306.5621, 3324.9897,
-                               -1663.0525, -19.2518, 629.2729, 40.7400,
-                               -3975.9639, -2796.5687, -2475.6849, 9236.7528,
-                               -1146.7200, 126.6917, 651.2525, -329.0731});
+    Matrix expected_mat(4, 4, 0.0);
 
-    EXPECT_TRUE(equal_matricies(expected_mat1, (mat1 * mat2)));
+    for (unsigned i = 0; i < MAT_1_ROWS; ++i) {
+        for (unsigned j = 0; j < MAT_1_COLS; ++j) {
+            for (unsigned k = 0; k < MAT_1_COLS; ++k) {
+                expected_mat(i, j) += mat1(i, k) * mat2(k, j);
+            }
+        }
+    }
 
-//    -52.5855	float
-//	67.1479	float
-//	75.3985	float
-//	0.00028647	float
-//	2808.11	float
-//	-3585.75	float
-//	-4026.34	float
-//	-0.0152977	float
-//	0	float
-//	0	float
-//	0	float
-//	0	float
-//	-1649.59	float
-//	2106.41	float
-//	2365.23	float
-//	0.00898647	float
-
-    Matrix expected_mat2(4, 4, {-52.5855, 67.1479, 75.3985, 0.0003,
-                                2808.1056, -3585.7399, -4026.3395, -0.0153,
-                                0.0000, 0.0000, 0.0000, 0.0000,
-                                -1649.5894, 2106.4076, 2365.2269, 0.0090});
-
-    EXPECT_TRUE(equal_matricies(expected_mat2, (vec * mat3)));
+    EXPECT_TRUE(equal_matricies(expected_mat, (mat1 * mat2)));
 }
 
 TEST(MatrixMatrixOperators, CumulativeAddition)
@@ -353,7 +351,7 @@ TEST(MatrixVectorOperators, Multiplication)
     Vector vec(VEC_1);
 
     Vector expected_vec({1442.2815, 657.5125, 6090.2054, 230.9662});
-    Vector res_vec = (mat * vec);
+    Vector res_vec = mat * vec;
 
     EXPECT_TRUE(equal_matricies(expected_vec, res_vec));
 }
@@ -487,30 +485,42 @@ TEST(MatrixOperators, Transpose)
     EXPECT_TRUE(equal_matricies(expected_mat, mat.trans()));
 }
 
-//TEST(MatrixOperators, ElementWiseSubtraction)
-//{
-//    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
-//    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+TEST(MatrixOperators, ElementWiseSubtraction)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-//    Matrix mat3 = mat1;
-//    mat1.subtractElemWise(mat2);
+    Matrix mat3;
+    mat3 = mat1 - mat2;
 
-//    for (unsigned i = 0; i < mat1.size(); ++i) {
-//        EXPECT_FLOAT_EQ(mat1(i), mat3(i) - mat2(i));
-//    }
-//}
+    for (unsigned i = 0; i < mat1.size(); ++i) {
+        EXPECT_FLOAT_EQ(mat3(i), mat1(i) - mat2(i));
+    }
+}
 
 TEST(MatrixOperators, ElementWiseMultiplication)
 {
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-    Matrix mat3 = mat1;
-//    mat1 = mat1.mulEWise(mat2);
-    mat1 = Matrix::mulEWise(mat1, mat2);
+    Matrix mat3;
+    mat3 = Matrix::mulEWise(mat1, mat2);
 
     for (unsigned i = 0; i < mat1.size(); ++i) {
-        EXPECT_FLOAT_EQ(mat1(i), mat3(i) * mat2(i));
+        EXPECT_FLOAT_EQ(mat3(i), mat1(i) * mat2(i));
+    }
+}
+
+TEST(MatrixOperators, ElementWiseMultiplicationOperator)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+
+    Matrix mat3;
+    mat3 = mat1 ** mat2;
+
+    for (unsigned i = 0; i < mat1.size(); ++i) {
+        EXPECT_FLOAT_EQ(mat3(i), mat1(i) * mat2(i));
     }
 }
 
@@ -592,13 +602,13 @@ TEST(MatrixUtility, ToString)
 {
     Matrix mat(MAT_1_ROWS, MAT_1_COLS, MAT_1);
 
-    std::string mat_str("[ 29.95, -27.72,  9.844,  0.000]\n"
-                        "[                              ]\n"
-                        "[-14.40,  0.406,  1.000,  23.10]\n"
-                        "[                              ]\n"
-                        "[-43.43, -61.81,  46.67,  99.48]\n"
-                        "[                              ]\n"
-                        "[-0.237,  3.536,  0.000,  13.74]\n");
+    std::string mat_str("[ 29.9549, -27.7233,  9.84440,  0.00000]\n"
+                        "[                                      ]\n"
+                        "[-14.3950,  0.40600,  1.00000,  23.1001]\n"
+                        "[                                      ]\n"
+                        "[-43.4291, -61.8100,  46.6723,  99.4774]\n"
+                        "[                                      ]\n"
+                        "[-0.23720,  3.53560,  0.00000,  13.7367]\n");
 
     ASSERT_TRUE(mat.str() == mat_str);
 }

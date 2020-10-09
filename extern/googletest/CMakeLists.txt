@@ -19,6 +19,7 @@ FetchContent_Declare(
     googletest
     GIT_REPOSITORY https://github.com/google/googletest.git
     GIT_TAG aee0f9d9b5b87796ee8a0ab26b7587ec30e8858e
+    GIT_CONFIG advice.detachedHead=false
     GIT_PROGRESS ON
 )
 

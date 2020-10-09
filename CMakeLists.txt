@@ -58,7 +58,10 @@ target_include_directories(${PROJECT_NAME}
 # Link pthreads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
+target_link_libraries(${PROJECT_NAME}
+    PRIVATE
+        Threads::Threads
+)
 
 
 
@@ -67,8 +70,18 @@ ADD_SUBDIRECTORY(extern/googletest)
 
 
 
+# Make googlebenchmark
+ADD_SUBDIRECTORY(extern/googlebenchmark)
+
+
+
 # Make test executable
 ADD_SUBDIRECTORY(test)
+
+
+
+# Make benchmark executable
+ADD_SUBDIRECTORY(benchmark)
 
 
 

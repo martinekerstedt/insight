@@ -4,7 +4,7 @@ build-debug/*
 build-release/*
 CMakeFiles/*
 extern/googletest/*
-!extern/gtest/CMakeLists.txt
+!extern/googletest/CMakeLists.txt
 lib/*
 test/bin/*
 examples/bin/*
@@ -17,10 +17,14 @@ notes
 nn
 .vscode/*
 *.autosave
-src/NeuralNet/old
+src/NeuralNet/old/*
+Papers/*
+TODO
+extern/googlebenchmark/*
+!extern/googlebenchmark/CMakeLists.txt
+benchmark/bin/*
 
 
 # Empty for now
 docs/*
-
 

@@ -360,6 +360,22 @@ void NeuralNet::printState(Vector input, Vector target, Vector error, size_t bat
     std::cout << ss.str() << std::endl;
 }
 
+void NeuralNet::setTraningData(const Matrix &input, const Matrix &target)
+{
+//    m_state.input = input;
+//    m_state.target = target;
+}
+
+void NeuralNet::step()
+{
+    // copy from train()
+    // one step should be one propergation,
+    // and if batchSize allows, one backprop also
+    // Or perhaps only one prop per step? No matter what
+
+//    ++m_state.step;
+}
+
 // Initialization functions
 void NeuralNet::setInitializationFunction(InitializationFunction::ALL_ZERO init_func)
 {
@@ -463,7 +479,6 @@ void NeuralNet::setOptimizeFunction(void (*optFunc)(const Vector&, const Vector&
     m_state.optFunc.type = State::OptFuncType::CUSTOM;
     m_state.optFunc.ptr = optFunc;
 }
-
 
 
 

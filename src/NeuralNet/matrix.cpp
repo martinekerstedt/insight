@@ -343,22 +343,30 @@ std::string Matrix::num2str(real num)
 
     if (num < 0) {
 
-        if (num < -99.99) {
+        if (num < -9999.99) {
             ss << std::setprecision(1) << num;
-        } else if (num < -9.999) {
+        } else if (num < -999.999) {
             ss << std::setprecision(2) << num;
-        } else {
+        } else if (num < -99.9999) {
             ss << std::setprecision(3) << num;
+        } else if (num < -9.99999) {
+            ss << std::setprecision(4) << num;
+        } else {
+            ss << std::setprecision(5) << num;
         }
 
     } else {
 
-        if (num > 99.99) {
+        if (num > 9999.99) {
             ss << " " << std::setprecision(1) << num;
-        } else if (num > 9.999) {
+        } else if (num > 999.999) {
             ss << " " << std::setprecision(2) << num;
-        } else {
+        } else if (num > 99.9999) {
             ss << " " << std::setprecision(3) << num;
+        } else if (num > 9.99999) {
+            ss << " " << std::setprecision(4) << num;
+        } else {
+            ss << " " << std::setprecision(5) << num;
         }
 
     }
@@ -368,8 +376,10 @@ std::string Matrix::num2str(real num)
 
 std::string Matrix::str()
 {
+    // Get maximum number of digts
+    // Set precision to 10 - max digits
+
     std::stringstream ss;
-//    ss << std::fixed << std::setprecision(2);
 
     for (unsigned i = 0; i < m_rows; ++i) {
 
@@ -384,7 +394,7 @@ std::string Matrix::str()
         if (i < (m_rows - 1)) {
             ss << "]\n[";
 
-            for (unsigned j = 0; j < ((m_cols*8) - 2); ++j) {
+            for (unsigned j = 0; j < ((m_cols*10) - 2); ++j) {
                 ss << " ";
             }
 

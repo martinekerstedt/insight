@@ -61,6 +61,9 @@ public:
     void save(std::string dir);
     void printState(Vector input, Vector target, Vector error, size_t batchIdx);
 
+    void setTraningData(const Matrix& input, const Matrix& target);
+    void step();
+
 
     const State& state();
 
@@ -73,16 +76,17 @@ public:
     void setCostFunction(CostFunction::CROSS_ENTROPY cost_func);
     void setCostFunction(CostFunction::SQUARE_DIFFERENCE cost_func);
 
-    void setActivationFunction(unsigned int layerIdx, ActivationFunction::RELU activ_func);
-    void setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func);
-    void setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func);
     void setActivationFunction(unsigned int layerIdx,
                                real (*activFunc)(real, StateAccess&),
                                real (*activFuncDeriv)(real, StateAccess&));
+    void setActivationFunction(unsigned int layerIdx, ActivationFunction::RELU activ_func);
+    void setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func);
+    void setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func);
 
+    void setOptimizeFunction(void (*optFunc)(const Vector&, const Vector&, StateAccess&));
     void setOptimizeFunction(OptimizeFunction::TEST opt_func);
     void setOptimizeFunction(OptimizeFunction::BACKPROP opt_func);
-    void setOptimizeFunction(void (*optFunc)(const Vector&, const Vector&, StateAccess&));
+
 
     struct Layer
     {
@@ -193,11 +197,8 @@ public:
         {            
             ActivFuncConfig cfg;
             ActivFuncType type;
-//            real (*ptr)(real);
-//            real (*derivPtr)(real);
             real (*ptr)(real, StateAccess&);
             real (*derivPtr)(real, StateAccess&);
-//            real operator()(real x) { return ptr(x); }
         };
 
         std::vector<ActivFunc> layerActivFunc;
@@ -215,6 +216,11 @@ public:
             OptFuncType type;
             void (*ptr)(const Vector&, const Vector&, StateAccess&);
         } optFunc;
+
+
+//        const Matrix& input;
+//        const Matrix& target;
+//        unsigned step;
     };
 
     State::Config& config();
@@ -231,16 +237,17 @@ public:
 
         // Currently selected functions, read only
         State::InitFuncType initFuncType() { return m_state.initFunc.type; }
-        State::ActivFuncType activFuncType(unsigned layerIdx)
-        {
-            return m_state.layerActivFunc[layerIdx].type;
-        }
+        State::ActivFuncType activFuncType(unsigned layerIdx) { return m_state.layerActivFunc[layerIdx].type; }
         State::CostFuncType costFuncType() { return m_state.costFunc.type; }
         State::OptFuncType optFuncType() { return m_state.optFunc.type; }
 
 
         // All user definable functions
-        // initFunc()
+        void initializeFunction()
+        {
+            m_state.initFunc.ptr(*this);
+        }
+
         real activationFunction(real x, unsigned int layerIdx)
         {
             return m_state.layerActivFunc[layerIdx].ptr(x, *this);
@@ -261,8 +268,15 @@ public:
             return m_state.layerActivFunc[layerIdx].derivPtr;
         }
 
-        // costFunc()
-        // optFunc()
+        real costFunction(real output, real target)
+        {
+            return m_state.costFunc.ptr(output, target, *this);
+        }
+
+        void optimizeFunction(const Vector& input, const Vector& error)
+        {
+            m_state.optFunc.ptr(input, error, *this);
+        }
 
         // All network configs, read only
         const State::Config config() { return m_state.config; }
@@ -274,7 +288,6 @@ public:
 
         // Layers
         std::vector<Layer>& layers() { return m_state.layers; }
-
 
         // Initialization function declarations
         friend void init_func_random_normal(StateAccess& net);
@@ -304,7 +317,7 @@ public:
 
 private:
     State m_state;
-    StateAccess m_stateAccess;
+    StateAccess m_stateAccess;   
 
 };
 

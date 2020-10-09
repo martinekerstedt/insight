@@ -176,6 +176,7 @@ void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet:
 {
     OptimizeFunction::BACKPROP& cfg = net.m_state.optFunc.cfg.backprop;
     std::vector<NeuralNet::Layer>& layers = net.m_state.layers;
+    auto afd = net.m_state.layerActivFunc[0].derivPtr;
 
     // Backprop output layer
     layers.back().gradient = error*cfg.learningRate;
@@ -184,17 +185,17 @@ void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet:
     for (int i = (layers.size() - 2); i >= 0; --i) {
 
         layers[i].gradient = layers[i + 1].weights.trans()
-                * (Matrix::apply(layers[i + 1].weightedSum, activation_func_sigmoid_deriv, net) ** layers[i + 1].gradient);
+                * (Matrix::apply(layers[i + 1].weightedSum, afd, net) ** layers[i + 1].gradient);
     }
 
     // Loop backwards
     for (int i = (layers.size() - 1); i > 0; --i) {
 
-        layers[i].weights -= (Matrix::apply(layers[i].weightedSum, activation_func_sigmoid_deriv, net) ** layers[i].gradient)
+        layers[i].weights -= (Matrix::apply(layers[i].weightedSum, afd, net) ** layers[i].gradient)
                 * layers[i - 1].output.trans();
     }
 
-    layers[0].weights -= (Matrix::apply(layers[0].weightedSum, activation_func_sigmoid_deriv, net) ** layers[0].gradient)
+    layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
             * input.trans();
 }
 

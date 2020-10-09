@@ -20,6 +20,7 @@ using real_3d_matrix = std::vector<real_matrix>;
                         + " | line:" + std::to_string(__LINE__) \
                         + " > " + ss.str()))
 
+// Fix with std::optional
 #define NONE_REAL   std::numeric_limits<real>::quiet_NaN()
 
 namespace InitializationFunction {
@@ -32,7 +33,7 @@ namespace InitializationFunction {
     {
         real mean = 0.0;
         real stddev = 1.0;
-        unsigned long seed = 0;
+        unsigned long seed = 0; // Fix with std::optional
     };
 }
 
@@ -89,7 +90,6 @@ namespace OptimizeFunction {
 
 
 
-// Add check to skip threads if the sizes are too small
 #include <thread>
 #include <algorithm>
 
@@ -118,6 +118,7 @@ void parallel_for(func f, unsigned nb_elements)
         int start = i * batch_size;
 
         my_threads[i] = std::thread(f, start, start+batch_size);
+//        std::jthread(f, start, start+batch_size); // A lot slower
     }
 
 

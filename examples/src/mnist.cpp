@@ -34,9 +34,10 @@ int main()
 
 
     // Config net
-    NeuralNet net({784, 32, 10});
+//    NeuralNet net({784, 32, 10});
+    NeuralNet net({784, 16, 16, 10});
 
-    net.config().nEpochs = 4;
+    net.config().nEpochs = 10;
     net.config().batchSize = 1;
     net.config().printInterval = 10000;
     net.config().softMax = false;

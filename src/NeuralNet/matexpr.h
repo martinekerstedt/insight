@@ -9,6 +9,7 @@
 // since this file is included into mat.h
 // where the header guard will stop this include
 #include <NeuralNet/matrix.h>
+#include <functional>
 
 
 // Need a map function, to deal with activation functions
@@ -33,9 +34,10 @@ public:
         m_rhs(rhs),
         m_cached(false) {}
 
+    // Fix with std::optional
     MatExprBase(const E1& lhs) :
         m_lhs(lhs),
-        m_rhs(const_cast<void*>(static_cast<const void*>(&lhs))),
+        m_rhs(nullptr),
         m_cached(false) {}
 
     virtual real operator()(const unsigned row, const unsigned col) const = 0;
@@ -180,6 +182,33 @@ public:
 
     unsigned evalCost() const
     {
+        // Need to benchmark these to get values
+        // Cost/st is probably reduced as size grows,
+        // perhaps not for memory
+        enum class Cost
+        {
+            ADD = 1,
+            SUB = 1,
+            MUL = 4,
+            DIV = 4,
+            ALLOC_REAL = 50,
+            COPY_REAL = 50
+        };
+
+//        unsigned costOfOp = 1;
+//        unsigned costAlloc = 1;
+//        unsigned costAccessE1 = this->m_lhs.evalCost();
+//        unsigned costAccessE2 = this->m_rhs.evalCost();
+//        unsigned sizeE1 = this->m_lhs.size();
+//        unsigned sizeE2 = this->m_rhs.size();
+//        unsigned costCacheE1 = sizeE1 * (costAccessE1 * costAlloc);                                 // Total cost of caching E1, resulting in costAccessE1 = 1
+//        unsigned costCacheE2 = sizeE2 * (costAccessE2 * costAlloc);                                 // Total cost of caching E2, resulting in costAccessE2 = 1
+
+//        unsigned cacheE1cacheE2 = costOfOp + costCacheE1/this->size() + costCacheE2/this->size();
+//        unsigned notCacheE1cacheE2 = costOfOp + costAccessE1 + costCacheE2/this->size();
+//        unsigned cacheE1notCacheE2 = costOfOp + costCacheE1/this->size() + costAccessE2;
+//        unsigned notCacheE1notCacheE2 = costOfOp + costAccessE1 + costAccessE2;
+
         return 1;
     }
 };
@@ -314,6 +343,12 @@ template <class E>
 class MatExprTrans : public MatExprBase<false, E>, virtual MatExpr
 {
 
+    // For very large matrices,
+    // it is more efficient to actually do the transpose,
+    // because of how spread the memory access is otherwise.
+    // Create a temp and wirte the transpose to it
+    // Need to overload cache() to make it optimized
+
 public:
     MatExprTrans(const E& expr) :
         MatExprBase<false, E>(expr) {}
@@ -349,7 +384,7 @@ public:
 template<class E, class func, class... args>
 class MatExprApply : public MatExprBase<true, E>, virtual MatExpr
 {
-    using args_seq = std::index_sequence_for<args...>;
+//    using args_seq = std::index_sequence_for<args...>;
 
 public:
     MatExprApply(const E& expr, func f, const args&... a) :
@@ -406,7 +441,7 @@ private:
 template<class E1, class E2, class func, class... args>
 class MatExprZip : public MatExprBase<true, E1, E2>, virtual MatExpr
 {
-    using args_seq = std::index_sequence_for<args...>;
+//    using args_seq = std::index_sequence_for<args...>;
 
 public:
     MatExprZip(const E1& lhs, const E2& rhs, func f, const args&... a) :
@@ -611,8 +646,8 @@ auto operator*(const E1& lhs, const E2& rhs)
 template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
 auto operator*(const E1& lhs, const MatExprEWiseMul2<E2>& rhs)
 {
-    assert(lhs.rows() == rhs.rows());
-    assert(lhs.cols() == rhs.cols());
+    assert(lhs.rows() == rhs.expr.rows());
+    assert(lhs.cols() == rhs.expr.cols());
     return MatExprEWiseMul<E1, E2>(lhs, rhs.expr);
 }
 

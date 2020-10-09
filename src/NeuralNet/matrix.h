@@ -13,7 +13,6 @@ class Vector;
 
 // TODO: Move sematics https://stackoverflow.com/questions/3106110/what-is-move-semantics
 
-//class Matrix : public MatExpr<Matrix>
 class Matrix
 {
 public:
@@ -70,12 +69,6 @@ public:
 
     // Matrix operators
     MatExprTrans<Matrix> trans() const;                                                       // vec: exactly same
-
-    template <class E> requires(is_expr<E>)
-    auto mulEWise(const E& rhs)
-    {
-        return MatExprEWiseMul<Matrix, E>(*this, rhs);
-    }
 
     template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
     static auto mulEWise(const E1& lhs, const E2& rhs)
