@@ -6,12 +6,6 @@
 project(test_insight LANGUAGES CXX)
 
 
-
-# Make googletest, before using it here
-#ADD_SUBDIRECTORY(${TOP_LEVEL_DIR}/extern/googletest)
-
-
-
 # Define output directories
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
