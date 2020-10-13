@@ -30,12 +30,17 @@ int main()
     Matrix train_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/train-labels.idx1-ubyte");
     Matrix train_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/train-images.idx3-ubyte");
     Matrix test_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-labels.idx1-ubyte");
-    Matrix test_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-images.idx3-ubyte");       
+    Matrix test_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/MNIST/t10k-images.idx3-ubyte");
+//    Matrix train_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/fashion-mnist/train-labels.idx1-ubyte");
+//    Matrix train_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/fashion-mnist/train-images.idx3-ubyte");
+//    Matrix test_labels = mnist.read_label_file("/home/martin/Documents/Projects/insight/data/fashion-mnist/t10k-labels.idx1-ubyte");
+//    Matrix test_images = mnist.read_image_file("/home/martin/Documents/Projects/insight/data/fashion-mnist/t10k-images.idx3-ubyte");
 
 
     // Config net
 //    NeuralNet net({784, 32, 10});
-    NeuralNet net({784, 16, 16, 10});
+//    NeuralNet net({784, 16, 16, 10});
+    NeuralNet net({784, 64, 32, 10});
 
     net.config().nEpochs = 10;
     net.config().batchSize = 1;

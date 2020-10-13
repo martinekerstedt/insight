@@ -16,7 +16,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin)
 # Define target
 add_executable(${PROJECT_NAME}
     src/mnist.cpp
-#    src/main.cpp
 )
 
 

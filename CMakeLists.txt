@@ -86,7 +86,8 @@ ADD_SUBDIRECTORY(benchmark)
 
 
 # Make example executable
-ADD_SUBDIRECTORY(examples)
+ADD_SUBDIRECTORY(examples/mnist)
+
 
 
 
