@@ -3,7 +3,9 @@
 # Set cmake minimum version
 cmake_minimum_required(VERSION 3.10)
 
-# Project name
+
+
+# Project name, language, version
 project(insight LANGUAGES CXX)
 
 set(INSIGHT_MAJOR_VERSION 0)
@@ -13,24 +15,43 @@ set(INSIGHT_VERSION
   ${INSIGHT_MAJOR_VERSION}.${INSIGHT_MINOR_VERSION}.${INSIGHT_PATCH_VERSION})
 
 
+
 # Specify the C++ standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Define output directories
+
+
+# Path to this dir, used in subdirectories
 set(TOP_LEVEL_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "TOP_LEVEL_DIR" FORCE)
 
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${TOP_LEVEL_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${TOP_LEVEL_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${TOP_LEVEL_DIR}/bin)
 
 
-#set(CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
-#set(CMAKE_BUILD_TYPE "Debug" CACHE STRING "" FORCE)
+# Default build is release, but build type should be set in the call to cmake
+if (NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
 
 
-# Define targets
-# Library
+
+# If debug, set debug macro and use verbose makefile
+string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
+
+if (BUILD_TYPE_UPPER MATCHES DEBUG)
+    add_compile_definitions(INSIGHT_DEBUG)
+    set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "" FORCE)    
+endif()
+
+
+
+# Compiler flags
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+set(CMAKE_CXX_FLAGS_DEBUG "-Og")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+
+
+
+# Define target as a shared library
 add_library(${PROJECT_NAME}
     SHARED
         src/insight.cpp
@@ -57,7 +78,9 @@ target_include_directories(${PROJECT_NAME}
 
 # Link pthreads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+
 find_package(Threads REQUIRED)
+
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         Threads::Threads
@@ -65,29 +88,27 @@ target_link_libraries(${PROJECT_NAME}
 
 
 
-# Make googletest
-ADD_SUBDIRECTORY(extern/googletest)
+# Project options
+option(ENABLE_TEST "Clones google test and builds tests" ON)
+option(ENABLE_BENCHMARK "Clones google benchmark and builds bencmarks" ON)
+option(BUILD_EXAMPLE "Build example program" ON)
 
 
-
-# Make googlebenchmark
-ADD_SUBDIRECTORY(extern/googlebenchmark)
-
-
-
-# Make test executable
-ADD_SUBDIRECTORY(test)
+if (ENABLE_TEST)
+    add_subdirectory(extern/googletest)
+    add_subdirectory(test)
+endif()
 
 
+if (ENABLE_BENCHMARK)
+    add_subdirectory(extern/googlebenchmark)
+    add_subdirectory(benchmark)
+endif()
 
-# Make benchmark executable
-ADD_SUBDIRECTORY(benchmark)
 
-
-
-# Make example executable
-ADD_SUBDIRECTORY(examples/mnist)
-
+if (BUILD_EXAMPLE)
+    add_subdirectory(examples/mnist)
+endif()
 
 
 

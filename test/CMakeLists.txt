@@ -7,9 +7,9 @@ project(test_insight LANGUAGES CXX)
 
 
 # Define output directories
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/bin)
+string(REPLACE "${TOP_LEVEL_DIR}" "${CMAKE_BINARY_DIR}" OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}")
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 
 
 
@@ -32,7 +32,7 @@ target_include_directories(${PROJECT_NAME}
 
 
 
-# Link, include paths/files are built-in to insight targe
+# Link, include paths/files are built-in to insight target
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
         insight

@@ -96,7 +96,7 @@ namespace OptimizeFunction {
 template <typename func>
 void parallel_for(func f, unsigned nb_elements)
 {
-#ifndef NDEBUG
+#ifdef INSIGHT_DEBUG
     f(0, nb_elements);
 #else
 

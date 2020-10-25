@@ -1,6 +1,12 @@
 # Google Test library
 
 
+
+# Compiler flags
+set(CMAKE_CXX_FLAGS_RELEASE "-O0")
+
+
+
 # Include module
 include(FetchContent)
 
@@ -38,11 +44,13 @@ FetchContent_MakeAvailable(googletest)
 
 
 # Change the output directories for targets defined by googletest
+string(REPLACE "${TOP_LEVEL_DIR}" "${CMAKE_BINARY_DIR}" OUTPUT_DIR "${CMAKE_CURRENT_LIST_DIR}")
+
 set_target_properties(
     gtest gtest_main
     PROPERTIES
-    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
-    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
+    ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}"
+    LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}"
 )
 
 if (BUILD_GMOCK)
@@ -50,8 +58,8 @@ if (BUILD_GMOCK)
     set_target_properties(
         gmock gmock_main
         PROPERTIES
-        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
-        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib"
+        ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}"
+        LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}"
     )
 
 endif()
