@@ -35,6 +35,11 @@ namespace InitializationFunction {
         real stddev = 1.0;
         unsigned long seed = 0; // Fix with std::optional
     };
+
+    struct RANDOM_UNIFORM
+    {
+        unsigned long seed = 0; // Fix with std::optional
+    };
 }
 
 namespace CostFunction {

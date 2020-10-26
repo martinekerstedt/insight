@@ -39,59 +39,59 @@ void init_func_random_normal(NeuralNet::StateAccess& net)
     }
 }
 
-//void init_func_random_uniform(NeuralNet::StateAccess& net)
-//{
-//    InitializationFunction::RANDOM_NORMAL cfg = net.m_state.initFunc.cfg.random;
+void init_func_random_uniform(NeuralNet::StateAccess& net)
+{
+    InitializationFunction::RANDOM_UNIFORM cfg = net.m_state.initFunc.cfg.uniform;
 
-//    std::mt19937 gen;
+    std::mt19937 gen;
 
-//    if (cfg.seed == 0) {
-//        // Random generator
-//        std::random_device rd{};
-//        gen.seed(rd());
-//    } else {
-//        gen.seed(cfg.seed);
-//    }
-
-
-//    // Get layers
-//    std::vector<NeuralNet::Layer>& layers = net.layers();
+    if (cfg.seed == 0) {
+        // Random generator
+        std::random_device rd{};
+        gen.seed(rd());
+    } else {
+        gen.seed(cfg.seed);
+    }
 
 
-//    // Input layer
-//    real max = 1.0/std::sqrt(net.config().sizeVec[0]*layers[0].size());
-//    real min = -1.0/std::sqrt(net.config().sizeVec[0]*layers[0].size());
-
-//    std::uniform_real_distribution<> d(min, max);
-
-//    // Loop neurons
-//    for (size_t j = 0; j < layers[0].size(); ++j) {
-
-//        // Loop weights
-//        for (size_t k = 0; k < layers[0].weights.cols(); ++k) {
-//            layers[0].weights(j, k) = d(gen);
-//        }
-//    }
+    // Get layers
+    std::vector<NeuralNet::Layer>& layers = net.layers();
 
 
-//    // Loop layers
-//    for (size_t i = 1; i < layers.size(); ++i) {
+    // Input layer
+    real max = 1.0/std::sqrt(net.config().sizeVec[0]*layers[0].size());
+    real min = -1.0/std::sqrt(net.config().sizeVec[0]*layers[0].size());
 
-//        real max = 1.0/std::sqrt(layers[i - 1].size()*layers[i].size());
-//        real min = -1.0/std::sqrt(layers[i - 1].size()*layers[i].size());
+    std::uniform_real_distribution<> d(min, max);
 
-//        std::uniform_real_distribution<> d2(min, max);
+    // Loop neurons
+    for (size_t j = 0; j < layers[0].size(); ++j) {
 
-//        // Loop neurons
-//        for (size_t j = 0; j < layers[i].size(); ++j) {
+        // Loop weights
+        for (size_t k = 0; k < layers[0].weights.cols(); ++k) {
+            layers[0].weights(j, k) = d(gen);
+        }
+    }
 
-//            // Loop weights
-//            for (size_t k = 0; k < layers[i].weights.cols(); ++k) {
-//                layers[i].weights(j, k) = d2(gen);
-//            }
-//        }
-//    }
-//}
+
+    // Loop layers
+    for (size_t i = 1; i < layers.size(); ++i) {
+
+        real max = 1.0/std::sqrt(layers[i - 1].size()*layers[i].size());
+        real min = -1.0/std::sqrt(layers[i - 1].size()*layers[i].size());
+
+        std::uniform_real_distribution<> d2(min, max);
+
+        // Loop neurons
+        for (size_t j = 0; j < layers[i].size(); ++j) {
+
+            // Loop weights
+            for (size_t k = 0; k < layers[i].weights.cols(); ++k) {
+                layers[i].weights(j, k) = d2(gen);
+            }
+        }
+    }
+}
 
 // Activation functions
 real activation_func_relu(real x, NeuralNet::StateAccess& net)

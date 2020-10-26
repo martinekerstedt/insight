@@ -38,18 +38,21 @@ int main()
 
 
     // Config net
-//    NeuralNet net({784, 32, 10});
-//    NeuralNet net({784, 16, 16, 10});
-    NeuralNet net({784, 64, 32, 10});
+    NeuralNet net({784, 10, 10, 10});
+//    NeuralNet net({784, 10, 10});
+//    NeuralNet net({784, 64, 32, 10});
 
-    net.config().nEpochs = 10;
+    net.config().nEpochs = 2;
     net.config().batchSize = 1;
     net.config().printInterval = 10000;
     net.config().softMax = false;
 
-//    InitializationFunction::RANDOM_NORMAL cfg;
-//    cfg.mean = 32;
-//    net.setInitializationFunction(cfg);
+    OptimizeFunction::BACKPROP cfg;
+    cfg.learningRate = 0.05;
+    net.setOptimizeFunction(cfg);
+
+    InitializationFunction::RANDOM_UNIFORM cfg2;
+    net.setInitializationFunction(cfg2);
         
     
     // Train

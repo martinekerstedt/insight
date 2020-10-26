@@ -391,6 +391,13 @@ void NeuralNet::setInitializationFunction(InitializationFunction::RANDOM_NORMAL 
     m_state.initFunc.ptr = init_func_random_normal;
 }
 
+void NeuralNet::setInitializationFunction(InitializationFunction::RANDOM_UNIFORM init_func)
+{
+    m_state.initFunc.cfg.uniform = init_func;
+    m_state.initFunc.type = State::InitFuncType::UNIFORM;
+    m_state.initFunc.ptr = init_func_random_uniform;
+}
+
 void NeuralNet::setInitializationFunction(void (*initFunc)(StateAccess&))
 {
     m_state.initFunc.type = State::InitFuncType::CUSTOM;

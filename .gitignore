@@ -1,31 +1,18 @@
 # Ignore
-bin/*
-data/*
+
 build-debug/*
 build-release/*
-CMakeFiles/*
-extern/googletest/*
-!extern/googletest/CMakeLists.txt
-lib/*
-test/bin/*
-examples/bin/*
-examples/src/main.cpp
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-CMakeLists.txt.user
-notes
-nn
-.vscode/*
-*.autosave
-src/NeuralNet/old/*
-Papers/*
-TODO
+data/*
+docs/*
 extern/googlebenchmark/*
 !extern/googlebenchmark/CMakeLists.txt
-benchmark/bin/*
+extern/googletest/*
+!extern/googletest/CMakeLists.txt
+papers/*
+CMakeLists.txt.user
+TODO
+
+*.autosave
 
 
-# Empty for now
-docs/*
 

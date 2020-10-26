@@ -70,6 +70,7 @@ public:
     void setInitializationFunction(void (*initFunc)(StateAccess&));
     void setInitializationFunction(InitializationFunction::ALL_ZERO init_func);
     void setInitializationFunction(InitializationFunction::RANDOM_NORMAL init_func);
+    void setInitializationFunction(InitializationFunction::RANDOM_UNIFORM init_func);
 
     void setCostFunction(real (*costFunc)(real, real, StateAccess&));
     void setCostFunction(CostFunction::DIFFERENCE cost_func);
@@ -123,7 +124,8 @@ public:
         {
             CUSTOM,
             ALL_ZERO,
-            RANDOM
+            RANDOM,
+            UNIFORM
         };
 
         enum class ActivFuncType
@@ -153,6 +155,7 @@ public:
         {
             InitializationFunction::ALL_ZERO all_zero;
             InitializationFunction::RANDOM_NORMAL random;
+            InitializationFunction::RANDOM_UNIFORM uniform;
         };
 
         struct ActivFuncConfig
@@ -291,6 +294,7 @@ public:
 
         // Initialization function declarations
         friend void init_func_random_normal(StateAccess& net);
+        friend void init_func_random_uniform(StateAccess& net);
 
         // Activation function declarations
         friend Vector activation_func_relu(const Vector& x, StateAccess& net);
