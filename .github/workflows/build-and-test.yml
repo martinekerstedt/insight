@@ -13,12 +13,18 @@ jobs:
       # Checks-out the repository and cd into it
       - uses: actions/checkout@v2
           
-      - name: test4
+      - name: test1
+        continue-on-error: true
         shell: bash
-        run: |
-          cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release &> /dev/null
-          cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeOutput.log
-          cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeError.log
+        run: cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release
+        
+      - name: test2
+        shell: bash
+        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeOutput.log
+      
+      - name: test3
+        shell: bash
+        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeError.log
       
       
 
