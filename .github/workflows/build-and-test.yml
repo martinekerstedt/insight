@@ -1,0 +1,25 @@
+name: build-and-test
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  job:
+    name: build-test
+    runs-on: ubuntu-latest
+
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # ls
+      - name: test
+        shell: bash
+        run: ls
+      
+      - name: test2
+        shell: bash
+        run: echo $GITHUB_WORKSPACE
+
