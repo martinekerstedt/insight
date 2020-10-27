@@ -6,7 +6,7 @@ on:
 
 jobs:
   job:
-    name: build-test.${{ matrix.build_type }}
+    name: build-test.${{ matrix.compiler }}.${{ matrix.build_type }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
