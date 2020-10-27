@@ -8,7 +8,6 @@ jobs:
   job:
     name: build-test
     runs-on: ubuntu-latest
-    continue-on-error: true
 
     steps:
       # Checks-out the repository and cd into it
@@ -16,18 +15,10 @@ jobs:
           
       - name: test4
         shell: bash
-        run: cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release
+        run: |
+          cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release
+          cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeOutput.log
+          cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeError.log
       
-      - name: test3
-        shell: bash
-        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeOutput.log
-      
-      - name: test2
-        shell: bash
-        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeError.log
-      
-      - name: test5
-        shell: bash
-        run: cmake --build ./build-release
       
 
