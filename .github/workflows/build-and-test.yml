@@ -22,12 +22,9 @@ jobs:
           CXX: g++-10
         
       - name: test2
+        continue-on-error: true
         shell: bash
-        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeOutput.log
-      
-      - name: test3
-        shell: bash
-        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeError.log
-      
-      
-
+        run: cmake --build ./build-release
+        env:
+          CC:  gcc-10
+          CXX: g++-10
