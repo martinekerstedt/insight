@@ -8,23 +8,23 @@ jobs:
   job:
     name: build-test
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       # Checks-out the repository and cd into it
       - uses: actions/checkout@v2
-
-      - name: test1
-        shell: bash
-        run: |
-          echo $GITHUB_WORKSPACE
-          echo $PWD
-          ls
-          cmake -version
-          gcc-10 -v
           
       - name: test4
         shell: bash
         run: cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release
+      
+      - name: test3
+        shell: bash
+        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeOutput.log
+      
+      - name: test2
+        shell: bash
+        run: cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeError.log
       
       - name: test5
         shell: bash
