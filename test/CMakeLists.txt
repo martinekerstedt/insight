@@ -16,7 +16,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${OUTPUT_DIR})
 # Define target
 add_executable(${PROJECT_NAME}
     src/main.cpp
-    src/squaretest.cpp
     src/neuralnettest.cpp
     src/vectortest.cpp
     src/matrixtest.cpp
