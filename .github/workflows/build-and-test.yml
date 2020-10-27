@@ -11,7 +11,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build_type: ['Debug', 'Release']
+        build_type: ['Release']
+        compiler: [gcc-9, clang]
 
     steps:
       # Checks-out the repository and cd into it
@@ -19,14 +20,14 @@ jobs:
           
       - name: test1
         shell: bash
-        run: cmake -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
+        run: cmake -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
         env:
-          CC:  gcc-10
-          CXX: g++-10
+          CC:  ${{ matrix.compiler }}
+          CXX: ${{ matrix.compiler }}
         
       - name: test2
         shell: bash
         run: cmake --build ./build-${{ matrix.build_type }}
         env:
-          CC:  gcc-10
-          CXX: g++-10
+          CC:  ${{ matrix.compiler }}
+          CXX: ${{ matrix.compiler }}
