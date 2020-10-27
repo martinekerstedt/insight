@@ -16,7 +16,7 @@ jobs:
       - name: test4
         shell: bash
         run: |
-          cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release
+          cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release &> /dev/null
           cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeOutput.log
           cat /home/runner/work/insight/insight/build-release/CMakeFiles/CMakeError.log
       
