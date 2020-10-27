@@ -6,25 +6,27 @@ on:
 
 jobs:
   job:
-    name: build-test
+    name: build-test.${{ matrix.build_type }}
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: ['Debug', 'Release']
 
     steps:
       # Checks-out the repository and cd into it
       - uses: actions/checkout@v2
           
       - name: test1
-        continue-on-error: true
         shell: bash
-        run: cmake -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release
+        run: cmake -DCMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
         env:
           CC:  gcc-10
           CXX: g++-10
         
       - name: test2
-        continue-on-error: true
         shell: bash
-        run: cmake --build ./build-release
+        run: cmake --build ./build-${{ matrix.build_type }}
         env:
           CC:  gcc-10
           CXX: g++-10
