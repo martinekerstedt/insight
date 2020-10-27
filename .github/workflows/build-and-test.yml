@@ -20,13 +20,14 @@ jobs:
           echo $PWD
           ls
           cmake -version
-          gcc -v
-      
+          gcc-10 -v
+          
       - name: test4
         shell: bash
-        run: cmake -DCMAKE_BUILD_TYPE=Release -B ./build-release
+        run: cmake -DCMAKE_CXX_COMPILER=gcc-10 -DCMAKE_BUILD_TYPE=Release -B ./build-release
       
       - name: test5
         shell: bash
         run: cmake --build ./build-release
+      
 
