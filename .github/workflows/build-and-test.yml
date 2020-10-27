@@ -15,15 +15,12 @@ jobs:
 
       - name: test1
         shell: bash
-        run: echo $GITHUB_WORKSPACE
-        
-      - name: test2
-        shell: bash
-        run: echo $PWD
-      
-      - name: test3
-        shell: bash
-        run: ls
+        run: |
+          echo $GITHUB_WORKSPACE
+          echo $PWD
+          ls
+          cmake -version
+          gcc -v
       
       - name: test4
         shell: bash
