@@ -6,14 +6,14 @@ on:
 
 jobs:
   job:
-    name: build-test.${{ matrix.c++-compiler }}.${{ matrix.build_type }}
+    name: build-test.${{ matrix.cxx }}.${{ matrix.build_type }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         build_type: ['Release']
-        c-compiler: [gcc-10, clang]
-        c++-compiler: [g++-10, clang]
+        c:   [gcc-10, clang]
+        cxx: [g++-10, clang]
 
     steps:
       # Checks-out the repository and cd into it
@@ -21,14 +21,14 @@ jobs:
           
       - name: test1
         shell: bash
-        run: cmake -DCMAKE_C_COMPILER=${{ matrix.c-compiler }} -DCMAKE_CXX_COMPILER=${{ matrix.c++-compiler }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
+        run: cmake -DCMAKE_C_COMPILER=${{ matrix.c }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
         env:
-          CC:  ${{ matrix.c-compiler }}
-          CXX: ${{ matrix.c++-compiler }}
+          CC:  ${{ matrix.c }}
+          CXX: ${{ matrix.cxx }}
         
       - name: test2
         shell: bash
         run: cmake --build ./build-${{ matrix.build_type }}
         env:
-          CC:  ${{ matrix.c-compiler }}
-          CXX: ${{ matrix.c++-compiler }}
+          CC:  ${{ matrix.c }}
+          CXX: ${{ matrix.cxx }}
