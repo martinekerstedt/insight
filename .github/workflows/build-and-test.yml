@@ -9,17 +9,27 @@ jobs:
     name: build-test
     runs-on: ubuntu-latest
 
-
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      # Checks-out the repository and cd into it
       - uses: actions/checkout@v2
 
-      # ls
-      - name: test
+      - name: test1
+        shell: bash
+        run: echo $GITHUB_WORKSPACE
+        
+      - name: test2
+        shell: bash
+        run: echo $PWD
+      
+      - name: test3
         shell: bash
         run: ls
       
-      - name: test2
+      - name: test4
         shell: bash
-        run: echo $GITHUB_WORKSPACE
+        run: cmake -DCMAKE_BUILD_TYPE=Release -B ./build-release
+      
+      - name: test5
+        shell: bash
+        run: cmake --build ./build-release
 
