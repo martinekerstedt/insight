@@ -12,7 +12,6 @@ jobs:
       fail-fast: false
       matrix:
         build_type: ['Release']
-        c:   [gcc-10, clang]
         cxx: [g++-10, clang]
 
     steps:
@@ -21,14 +20,12 @@ jobs:
           
       - name: test1
         shell: bash
-        run: cmake -DCMAKE_C_COMPILER=${{ matrix.c }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
+        run: cmake -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
         env:
-          CC:  ${{ matrix.c }}
           CXX: ${{ matrix.cxx }}
         
       - name: test2
         shell: bash
         run: cmake --build ./build-${{ matrix.build_type }}
         env:
-          CC:  ${{ matrix.c }}
           CXX: ${{ matrix.cxx }}
