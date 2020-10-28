@@ -6,16 +6,17 @@ on:
 
 jobs:
   job:
-    name: build-test.${{ matrix.os }}.${{ matrix.config.cxx }}.${{ matrix.build_type }}
+    name: ${{ matrix.os }}.${{ matrix.config.cxx }}.${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-18.04, macos-10.15]
+        # os: [ubuntu-18.04, macos-10.15]
+        os: [ubuntu-18.04]
         build_type: ['Release', 'Debug']
         config:
         - {c: gcc-10, cxx: g++-10}
-        #- {c: clang, cxx: clang++}
+        # - {c: clang, cxx: clang++}
         
     steps:
       # Checks-out the repository and cd into it
