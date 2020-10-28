@@ -14,18 +14,18 @@ jobs:
         os: [ubuntu-18.04, macos-10.15]
         build_type: ['Release']
         config:
-        - {c: gcc-9, cxx: g++-9}
+        - {c: gcc-10, cxx: g++-10}
         #- {c: clang, cxx: clang++}
         
     steps:
       # Checks-out the repository and cd into it
       - uses: actions/checkout@v2
       
-      - name: test0
-        run: clang -v
       
-      - name: test00
-        run: clang++ -v
+      - name: test0
+        if: matrix.os == macos-10.15
+        run: brew install gcc@10
+          
           
       - name: test1
         run: cmake -DCMAKE_C_COMPILER=${{ matrix.config.c }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }}
@@ -34,8 +34,11 @@ jobs:
           CC:  ${{ matrix.config.c }}
           CXX: ${{ matrix.config.cxx }}
         
+        
       - name: test2
         run: cmake --build ./build-${{ matrix.build_type }}
         env:
           CC:  ${{ matrix.config.c }}
           CXX: ${{ matrix.config.cxx }}
+
+
