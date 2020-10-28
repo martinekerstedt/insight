@@ -22,7 +22,7 @@ jobs:
           
       - name: test1
         shell: bash
-        run: cmake -DCMAKE_C_COMPILER=${{ matrix.config.c }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }} ..
+        run: cmake -DCMAKE_C_COMPILER=${{ matrix.config.c }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }}
                    -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
         env:
           CC:  ${{ matrix.config.c }}
