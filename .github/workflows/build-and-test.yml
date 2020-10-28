@@ -40,5 +40,9 @@ jobs:
         env:
           CC:  ${{ matrix.config.c }}
           CXX: ${{ matrix.config.cxx }}
+          
+      
+      - name: test3
+        run: ctest --output-on-failure ./build-${{ matrix.build_type }}
 
 
