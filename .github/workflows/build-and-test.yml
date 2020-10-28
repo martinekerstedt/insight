@@ -6,26 +6,31 @@ on:
 
 jobs:
   job:
-    name: build-test.${{ matrix.cxx }}.${{ matrix.build_type }}
+    name: build-test.${{ matrix.config.cxx }}.${{ matrix.build_type }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         build_type: ['Release']
-        cxx: [gcc-10, clang]
-
+        config:
+        - {c: gcc-10, cxx: g++-10}
+        - {c: clang, cxx: clang++}
+        
     steps:
       # Checks-out the repository and cd into it
       - uses: actions/checkout@v2
           
       - name: test1
         shell: bash
-        run: cmake -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
+        run: cmake -DCMAKE_C_COMPILER=${{ matrix.config.c }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }} ..
+                   -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -B ./build-${{ matrix.build_type }}
         env:
-          CXX: ${{ matrix.cxx }}
+          CC:  ${{ matrix.config.c }}
+          CXX: ${{ matrix.config.cxx }}
         
       - name: test2
         shell: bash
         run: cmake --build ./build-${{ matrix.build_type }}
         env:
-          CXX: ${{ matrix.cxx }}
+          CC:  ${{ matrix.config.c }}
+          CXX: ${{ matrix.config.cxx }}
