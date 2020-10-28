@@ -43,6 +43,7 @@ jobs:
           
       
       - name: test3
-        run: ctest --output-on-failure ./build-${{ matrix.build_type }}
+        working-directory: ${{ github.workspace }}/build-${{ matrix.build_type }}
+        run: ctest --output-on-failure
 
 
