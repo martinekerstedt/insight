@@ -95,6 +95,7 @@ option(BUILD_EXAMPLE "Build example program" ON)
 
 
 if (ENABLE_TEST)
+    enable_testing()
     add_subdirectory(extern/googletest)
     add_subdirectory(test)
 endif()
