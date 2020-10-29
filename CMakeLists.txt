@@ -22,6 +22,30 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
 
+# Number of threads to use when building
+include(ProcessorCount)
+
+ProcessorCount(NUMBER_OF_CORES)
+
+if (NUMBER_OF_CORES EQUAL 0)
+    # Common core count is atleast four
+    set(NUMBER_OF_CORES 4)
+endif()
+
+set(CMAKE_BUILD_PARALLEL_LEVEL "${NUMBER_OF_CORES}" CACHE STRING "Number of parallel jobs" FORCE)
+
+message("")
+message("")
+message("")
+message("------------------------------------------------------------------")
+message("${CMAKE_BUILD_PARALLEL_LEVEL}")
+message("------------------------------------------------------------------")
+message("")
+message("")
+message("")
+
+
+
 # Path to this dir, used in subdirectories
 set(TOP_LEVEL_DIR ${CMAKE_CURRENT_LIST_DIR} CACHE PATH "TOP_LEVEL_DIR" FORCE)
 
@@ -39,7 +63,7 @@ string(TOUPPER "${CMAKE_BUILD_TYPE}" BUILD_TYPE_UPPER)
 
 if (BUILD_TYPE_UPPER MATCHES DEBUG)
     add_compile_definitions(INSIGHT_DEBUG)
-    set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "" FORCE)    
+    set(CMAKE_VERBOSE_MAKEFILE ON CACHE BOOL "Verbose makefile" FORCE)
 endif()
 
 
