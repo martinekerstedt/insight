@@ -22,27 +22,18 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 
 
-# Number of threads to use when building
-include(ProcessorCount)
-
-ProcessorCount(NUMBER_OF_CORES)
-
-if (NUMBER_OF_CORES EQUAL 0)
-    # Common core count is atleast four
-    set(NUMBER_OF_CORES 4)
-endif()
-
-set(CMAKE_BUILD_PARALLEL_LEVEL "${NUMBER_OF_CORES}" CACHE STRING "Number of parallel jobs" FORCE)
-
-message("")
-message("")
-message("")
-message("------------------------------------------------------------------")
-message("${CMAKE_BUILD_PARALLEL_LEVEL}")
-message("------------------------------------------------------------------")
-message("")
-message("")
-message("")
+# NOT WORKING
+# # Number of threads to use when building
+# include(ProcessorCount)
+#
+# ProcessorCount(NUMBER_OF_CORES)
+#
+# if (NUMBER_OF_CORES EQUAL 0)
+#     # Common core count is atleast four
+#     set(NUMBER_OF_CORES 4)
+# endif()
+#
+# set(CMAKE_BUILD_PARALLEL_LEVEL "${NUMBER_OF_CORES}" CACHE STRING "Number of parallel jobs" FORCE)
 
 
 
