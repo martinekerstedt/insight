@@ -1,7 +1,8 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
 
-#include <NeuralNet/neuralnet.h>
+//#include <NeuralNet/neuralnet.h>
+#include <NeuralNet/stateaccess.h>
 
 // Initialization function declarations
 //void init_func_random_normal(NeuralNet::StateAccess& net);
@@ -24,29 +25,33 @@
 // Optimizer function declarations
 //void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet::StateAccess& net);
 
-
+namespace NeuralNet
+{
 
 // Initialization function declarations
-void init_func_random_normal(NeuralNet::StateAccess& net);
-void init_func_random_uniform(NeuralNet::StateAccess& net);
+void init_func_random_normal(StateAccess& net);
+void init_func_random_uniform(StateAccess& net);
 
 // Activation function declarations
-real activation_func_relu(real x, NeuralNet::StateAccess& net);
-real activation_func_sigmoid(real x, NeuralNet::StateAccess& net);
-real activation_func_tanh(real x, NeuralNet::StateAccess& net);
+real activation_func_relu(real x, StateAccess& net);
+real activation_func_sigmoid(real x, StateAccess& net);
+real activation_func_tanh(real x, StateAccess& net);
 
 // Activation function derivative declarations
-real activation_func_relu_deriv(real x, NeuralNet::StateAccess& net);
-real activation_func_sigmoid_deriv(real x, NeuralNet::StateAccess& net);
-real activation_func_tanh_deriv(real x, NeuralNet::StateAccess& net);
+real activation_func_relu_deriv(real x, StateAccess& net);
+real activation_func_sigmoid_deriv(real x, StateAccess& net);
+real activation_func_tanh_deriv(real x, StateAccess& net);
 
 // Cost function declarations
-real cost_func_difference(real output, real target, NeuralNet::StateAccess& net);
-real cost_func_square_difference(real output, real target, NeuralNet::StateAccess& net);
-real cost_func_cross_entropy(real output, real target, NeuralNet::StateAccess& net);
+real cost_func_difference(real output, real target, StateAccess& net);
+real cost_func_square_difference(real output, real target, StateAccess& net);
+real cost_func_cross_entropy(real output, real target, StateAccess& net);
 
 // Optimizer function declarations
-void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet::StateAccess& net);
+void optimize_func_backprop(const Vector& input, const Vector& error, StateAccess& net);
+
+
+} // namespace NeuralNet
 
 
 #endif // FUNCTIONS_H

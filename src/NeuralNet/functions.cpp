@@ -2,6 +2,11 @@
 #include <cmath>
 #include <random>
 
+
+namespace NeuralNet
+{
+
+
 // Initialization functions
 void init_func_random_normal(NeuralNet::StateAccess& net)
 {
@@ -22,7 +27,7 @@ void init_func_random_normal(NeuralNet::StateAccess& net)
     std::normal_distribution<real> d{cfg.mean, cfg.stddev};       
 
     // Get layers
-    std::vector<NeuralNet::Layer>& layers = net.layers();
+    std::vector<State::Layer>& layers = net.layers();
 
     // Loop layers
     for (size_t i = 0; i < layers.size(); ++i) {
@@ -55,7 +60,7 @@ void init_func_random_uniform(NeuralNet::StateAccess& net)
 
 
     // Get layers
-    std::vector<NeuralNet::Layer>& layers = net.layers();
+    std::vector<State::Layer>& layers = net.layers();
 
 
     // Input layer
@@ -229,7 +234,7 @@ real cost_func_cross_entropy(real output, real target, NeuralNet::StateAccess& n
 void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet::StateAccess& net)
 {
     OptimizeFunction::BACKPROP& cfg = net.m_state.optFunc.cfg.backprop;
-    std::vector<NeuralNet::Layer>& layers = net.m_state.layers;
+    std::vector<State::Layer>& layers = net.m_state.layers;
     auto afd = net.m_state.layerActivFunc[0].derivPtr;
 
     // Backprop output layer
@@ -254,8 +259,7 @@ void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet:
 }
 
 
-
-
+} // namespace NeuralNet
 
 
 

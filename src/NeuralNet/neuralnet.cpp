@@ -8,19 +8,21 @@
 #include <sstream>
 #include <iomanip>
 
-NeuralNet::NeuralNet() :
-    NeuralNet({1, 2, 1})
+using namespace NeuralNet;
+
+Model::Model() :
+    Model({1, 2, 1})
 {
 
 }
 
-NeuralNet::NeuralNet(const std::initializer_list<size_t>& list) :
-    NeuralNet(std::vector<size_t>(list))
+Model::Model(const std::initializer_list<size_t>& list) :
+    Model(std::vector<size_t>(list))
 {
 
 }
 
-NeuralNet::NeuralNet(const std::vector<size_t>& sizeVec) :
+Model::Model(const std::vector<size_t>& sizeVec) :
     m_stateAccess(m_state)
 {
     if (sizeVec.size() < 2) {
@@ -63,7 +65,7 @@ NeuralNet::NeuralNet(const std::vector<size_t>& sizeVec) :
     for (size_t i = 0; i < (sizeVec.size() - 1); ++i) {
 
         // Add layer
-        m_state.layers.push_back(Layer(sizeVec[i], sizeVec[i + 1]));
+        m_state.layers.push_back(State::Layer(sizeVec[i], sizeVec[i + 1]));
         State::ActivFunc activFunc;
         activFunc.type = State::ActivFuncType::SIGMOID;
         activFunc.ptr = activation_func_sigmoid;
@@ -78,12 +80,7 @@ NeuralNet::NeuralNet(const std::vector<size_t>& sizeVec) :
     m_state.initFunc.ptr(m_stateAccess);
 }
 
-NeuralNet::State::Config &NeuralNet::config()
-{
-    return m_state.config;
-}
-
-void NeuralNet::propergate(const Vector& input)
+void Model::propergate(const Vector& input)
 {
     if (input.size() != m_state.config.sizeVec[0]) {
         THROW_ERROR("Invalid input size: "
@@ -110,7 +107,7 @@ void NeuralNet::propergate(const Vector& input)
     }
 }
 
-void NeuralNet::train(const Matrix& input, const Matrix& target)
+void Model::train(const Matrix& input, const Matrix& target)
 {
     // Check sizes
     if (input.rows() != target.rows()) {
@@ -199,7 +196,7 @@ void NeuralNet::train(const Matrix& input, const Matrix& target)
     }
 }
 
-void NeuralNet::softMax(Vector& output)
+void Model::softMax(Vector& output)
 {
     real sum = 0;
 
@@ -213,12 +210,12 @@ void NeuralNet::softMax(Vector& output)
     }
 }
 
-const Vector& NeuralNet::output()
+const Vector& Model::output()
 {
     return m_state.layers.back().output;
 }
 
-void NeuralNet::save(std::string dir)
+void Model::save(std::string dir)
 {
     // Need to save m_sizeVec, weights and biases
     // Maybe also all other config
@@ -256,7 +253,7 @@ void NeuralNet::save(std::string dir)
     }
 }
 
-void NeuralNet::printState(Vector input, Vector target, Vector error, size_t batchIdx)
+void Model::printState(Vector input, Vector target, Vector error, size_t batchIdx)
 {
     // Create stream
     std::stringstream ss;
@@ -360,52 +357,57 @@ void NeuralNet::printState(Vector input, Vector target, Vector error, size_t bat
     std::cout << ss.str() << std::endl;
 }
 
-void NeuralNet::setTraningData(const Matrix &input, const Matrix &target)
+void Model::setTraningData(const Matrix &input, const Matrix &target)
 {
 //    m_state.input = input;
 //    m_state.target = target;
 }
 
-void NeuralNet::step()
+void Model::step()
 {
     // copy from train()
     // one step should be one propergation,
     // and if batchSize allows, one backprop also
     // Or perhaps only one prop per step? No matter what
 
-//    ++m_state.step;
+    //    ++m_state.step;
+}
+
+State::Config &Model::config()
+{
+    return m_state.config;
 }
 
 // Initialization functions
-void NeuralNet::setInitializationFunction(InitializationFunction::ALL_ZERO init_func)
+void Model::setInitializationFunction(InitializationFunction::ALL_ZERO init_func)
 {
     m_state.initFunc.cfg.all_zero = init_func;
     m_state.initFunc.type = State::InitFuncType::ALL_ZERO;
     m_state.initFunc.ptr = init_func_random_normal;
 }
 
-void NeuralNet::setInitializationFunction(InitializationFunction::RANDOM_NORMAL init_func)
+void Model::setInitializationFunction(InitializationFunction::RANDOM_NORMAL init_func)
 {
     m_state.initFunc.cfg.random = init_func;
     m_state.initFunc.type = State::InitFuncType::RANDOM;
     m_state.initFunc.ptr = init_func_random_normal;
 }
 
-void NeuralNet::setInitializationFunction(InitializationFunction::RANDOM_UNIFORM init_func)
+void Model::setInitializationFunction(InitializationFunction::RANDOM_UNIFORM init_func)
 {
     m_state.initFunc.cfg.uniform = init_func;
     m_state.initFunc.type = State::InitFuncType::UNIFORM;
     m_state.initFunc.ptr = init_func_random_uniform;
 }
 
-void NeuralNet::setInitializationFunction(void (*initFunc)(StateAccess&))
+void Model::setInitializationFunction(void (*initFunc)(StateAccess&))
 {
     m_state.initFunc.type = State::InitFuncType::CUSTOM;
     m_state.initFunc.ptr = initFunc;
 }
 
 // Activation functions
-void NeuralNet::setActivationFunction(unsigned int layerIdx, ActivationFunction::RELU activ_func)
+void Model::setActivationFunction(unsigned int layerIdx, ActivationFunction::RELU activ_func)
 {
     m_state.layerActivFunc[layerIdx].cfg.relu = activ_func;
     m_state.layerActivFunc[layerIdx].type = State::ActivFuncType::RELU;
@@ -413,7 +415,7 @@ void NeuralNet::setActivationFunction(unsigned int layerIdx, ActivationFunction:
     m_state.layerActivFunc[layerIdx].derivPtr = activation_func_relu_deriv;
 }
 
-void NeuralNet::setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func)
+void Model::setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func)
 {
     m_state.layerActivFunc[layerIdx].cfg.sigmoid = activ_func;
     m_state.layerActivFunc[layerIdx].type = State::ActivFuncType::SIGMOID;
@@ -421,7 +423,7 @@ void NeuralNet::setActivationFunction(unsigned int layerIdx, ActivationFunction:
     m_state.layerActivFunc[layerIdx].derivPtr = activation_func_sigmoid_deriv;
 }
 
-void NeuralNet::setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func)
+void Model::setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func)
 {
     m_state.layerActivFunc[layerIdx].cfg.tanh = activ_func;
     m_state.layerActivFunc[layerIdx].type = State::ActivFuncType::TANH;
@@ -429,7 +431,7 @@ void NeuralNet::setActivationFunction(unsigned int layerIdx, ActivationFunction:
     m_state.layerActivFunc[layerIdx].derivPtr = activation_func_tanh_deriv;
 }
 
-void NeuralNet::setActivationFunction(unsigned int layerIdx,
+void Model::setActivationFunction(unsigned int layerIdx,
                                       real (*activFunc)(real, StateAccess&),
                                       real (*activFuncDeriv)(real, StateAccess&))
 {
@@ -439,27 +441,27 @@ void NeuralNet::setActivationFunction(unsigned int layerIdx,
 }
 
 // Cost functions
-void NeuralNet::setCostFunction(real (*costFunc)(real output, real target, StateAccess& net))
+void Model::setCostFunction(real (*costFunc)(real output, real target, StateAccess& net))
 {
     m_state.costFunc.type = State::CostFuncType::CUSTOM;
     m_state.costFunc.ptr = costFunc;
 }
 
-void NeuralNet::setCostFunction(CostFunction::DIFFERENCE cost_func)
+void Model::setCostFunction(CostFunction::DIFFERENCE cost_func)
 {
     m_state.costFunc.cfg.diff = cost_func;
     m_state.costFunc.type = State::CostFuncType::DIFFERENCE;
     m_state.costFunc.ptr = cost_func_difference;
 }
 
-void NeuralNet::setCostFunction(CostFunction::SQUARE_DIFFERENCE cost_func)
+void Model::setCostFunction(CostFunction::SQUARE_DIFFERENCE cost_func)
 {
     m_state.costFunc.cfg.sq_diff = cost_func;
     m_state.costFunc.type = State::CostFuncType::SQUARE_DIFFERENCE;
     m_state.costFunc.ptr = cost_func_square_difference;
 }
 
-void NeuralNet::setCostFunction(CostFunction::CROSS_ENTROPY cost_func)
+void Model::setCostFunction(CostFunction::CROSS_ENTROPY cost_func)
 {
     m_state.costFunc.cfg.x_ntrp = cost_func;
     m_state.costFunc.type = State::CostFuncType::CROSS_ENTROPY;
@@ -467,21 +469,21 @@ void NeuralNet::setCostFunction(CostFunction::CROSS_ENTROPY cost_func)
 }
 
 // Optimize functions
-void NeuralNet::setOptimizeFunction(OptimizeFunction::TEST opt_func)
+void Model::setOptimizeFunction(OptimizeFunction::TEST opt_func)
 {
     m_state.optFunc.cfg.test = opt_func;
     m_state.optFunc.type = State::OptFuncType::TEST;
     m_state.optFunc.ptr = optimize_func_backprop;
 }
 
-void NeuralNet::setOptimizeFunction(OptimizeFunction::BACKPROP opt_func)
+void Model::setOptimizeFunction(OptimizeFunction::BACKPROP opt_func)
 {
     m_state.optFunc.cfg.backprop = opt_func;
     m_state.optFunc.type = State::OptFuncType::BACKPROP;
     m_state.optFunc.ptr = optimize_func_backprop;
 }
 
-void NeuralNet::setOptimizeFunction(void (*optFunc)(const Vector&, const Vector&, StateAccess&))
+void Model::setOptimizeFunction(void (*optFunc)(const Vector&, const Vector&, StateAccess&))
 {
     m_state.optFunc.type = State::OptFuncType::CUSTOM;
     m_state.optFunc.ptr = optFunc;

@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #include <Common/types.h>
+#include <Common/parallelfor.h>
 #include <vector>
 #include <NeuralNet/matexpr_base.h>
 

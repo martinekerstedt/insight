@@ -10,10 +10,11 @@
 
 #include <random>
 
+
 void my_init(NeuralNet::StateAccess& state)
 {
     const NeuralNet::State::Config s = state.config();
-    std::vector<NeuralNet::Layer>& layers = state.layers();
+    std::vector<NeuralNet::State::Layer>& layers = state.layers();
     layers[0].bias(2) = 2;
 
     NeuralNet::State a;
@@ -38,21 +39,21 @@ int main()
 
 
     // Config net
-    NeuralNet net({784, 10, 10, 10});
+    NeuralNet::Model net({784, 32, 10});
 //    NeuralNet net({784, 10, 10});
 //    NeuralNet net({784, 64, 32, 10});
 
-    net.config().nEpochs = 2;
+    net.config().nEpochs = 4;
     net.config().batchSize = 1;
     net.config().printInterval = 10000;
     net.config().softMax = false;
 
-    OptimizeFunction::BACKPROP cfg;
-    cfg.learningRate = 0.05;
-    net.setOptimizeFunction(cfg);
+//    OptimizeFunction::BACKPROP cfg;
+//    cfg.learningRate = 0.05;
+//    net.setOptimizeFunction(cfg);
 
-    InitializationFunction::RANDOM_UNIFORM cfg2;
-    net.setInitializationFunction(cfg2);
+//    InitializationFunction::RANDOM_UNIFORM cfg2;
+//    net.setInitializationFunction(cfg2);
         
     
     // Train
