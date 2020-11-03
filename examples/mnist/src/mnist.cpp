@@ -13,8 +13,8 @@
 
 void my_init(NeuralNet::StateAccess& state)
 {
-    const NeuralNet::State::Config s = state.config();
-    std::vector<NeuralNet::State::Layer>& layers = state.layers();
+    const NeuralNet::State::Config s = state.config;
+    std::vector<NeuralNet::State::Layer>& layers = state.layers;
     layers[0].bias(2) = 2;
 
     NeuralNet::State a;
@@ -43,7 +43,7 @@ int main()
 //    NeuralNet net({784, 10, 10});
 //    NeuralNet net({784, 64, 32, 10});
 
-    net.config().nEpochs = 4;
+    net.config().nEpochs = 2;
     net.config().batchSize = 1;
     net.config().printInterval = 10000;
     net.config().softMax = false;

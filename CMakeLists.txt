@@ -61,7 +61,7 @@ endif()
 
 # Compiler flags
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
-set(CMAKE_CXX_FLAGS_DEBUG "-Og")
+#set(CMAKE_CXX_FLAGS_DEBUG "-Og") # This seems to disable debug info in exe
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 

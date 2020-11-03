@@ -10,7 +10,8 @@ namespace NeuralNet
 // Initialization functions
 void init_func_random_normal(NeuralNet::StateAccess& net)
 {
-    InitializationFunction::RANDOM_NORMAL cfg = net.m_state.initFunc.cfg.random;
+//    InitializationFunction::RANDOM_NORMAL cfg = net.m_state.initFunc.cfg.random;
+    InitializationFunction::RANDOM_NORMAL cfg = net.initFuncConfig.random;
 
     std::mt19937 gen;
 
@@ -27,7 +28,7 @@ void init_func_random_normal(NeuralNet::StateAccess& net)
     std::normal_distribution<real> d{cfg.mean, cfg.stddev};       
 
     // Get layers
-    std::vector<State::Layer>& layers = net.layers();
+    std::vector<State::Layer>& layers = net.layers;
 
     // Loop layers
     for (size_t i = 0; i < layers.size(); ++i) {
@@ -46,7 +47,8 @@ void init_func_random_normal(NeuralNet::StateAccess& net)
 
 void init_func_random_uniform(NeuralNet::StateAccess& net)
 {
-    InitializationFunction::RANDOM_UNIFORM cfg = net.m_state.initFunc.cfg.uniform;
+//    InitializationFunction::RANDOM_UNIFORM cfg = net.m_state.initFunc.cfg.uniform;
+    InitializationFunction::RANDOM_UNIFORM cfg = net.initFuncConfig.uniform;
 
     std::mt19937 gen;
 
@@ -60,12 +62,12 @@ void init_func_random_uniform(NeuralNet::StateAccess& net)
 
 
     // Get layers
-    std::vector<State::Layer>& layers = net.layers();
+    std::vector<State::Layer>& layers = net.layers;
 
 
     // Input layer
-    real max = 1.0/std::sqrt(net.config().sizeVec[0]*layers[0].size());
-    real min = -1.0/std::sqrt(net.config().sizeVec[0]*layers[0].size());
+    real max = 1.0/std::sqrt(net.config.sizeVec[0]*layers[0].size());
+    real min = -1.0/std::sqrt(net.config.sizeVec[0]*layers[0].size());
 
     std::uniform_real_distribution<> d(min, max);
 
@@ -233,9 +235,12 @@ real cost_func_cross_entropy(real output, real target, NeuralNet::StateAccess& n
 // Optimize functions
 void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet::StateAccess& net)
 {
-    OptimizeFunction::BACKPROP& cfg = net.m_state.optFunc.cfg.backprop;
-    std::vector<State::Layer>& layers = net.m_state.layers;
-    auto afd = net.m_state.layerActivFunc[0].derivPtr;
+//    OptimizeFunction::BACKPROP& cfg = net.m_state.optFunc.cfg.backprop;
+//    std::vector<State::Layer>& layers = net.m_state.layers;
+//    auto afd = net.m_state.layerActivFunc[0].derivPtr;
+    const OptimizeFunction::BACKPROP& cfg = net.optFuncConfig.backprop;
+    std::vector<State::Layer>& layers = net.layers;
+    auto afd = net.activationFunctionDerivate(0);
 
     // Backprop output layer
     layers.back().gradient = error*cfg.learningRate;

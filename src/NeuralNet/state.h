@@ -55,6 +55,20 @@ struct State
 
     std::vector<Layer> layers;
 
+    // Input
+    const Vector* input; // Should perhaps be a view type
+    Vector avg_input;
+
+    // Target
+    const Vector* target;
+
+    // Error
+    Vector error;
+    Vector avg_error;
+
+    // Step
+    unsigned long step;
+
     // Built-in initialization functions
     enum class InitFuncType
     {
