@@ -61,6 +61,15 @@ Model::Model(const std::vector<size_t>& sizeVec) :
     setOptimizeFunction(backprop_cfg);
 
 
+    // Initialize error vectors
+    m_state.error.resize(sizeVec.back(), 0.0);
+    m_state.avg_error.resize(sizeVec.back(), 0.0);
+
+
+    // Initialize average input
+    m_state.avg_input.resize(sizeVec.front(), 0.0);
+
+
     // Create network
     for (size_t i = 0; i < (sizeVec.size() - 1); ++i) {
 
@@ -80,20 +89,13 @@ Model::Model(const std::vector<size_t>& sizeVec) :
     m_state.initFunc.ptr(m_stateAccess);
 }
 
-void Model::propergate(const Vector& input)
+void Model::propergate()
 {
-    if (input.size() != m_state.config.sizeVec[0]) {
-        THROW_ERROR("Invalid input size: "
-                    << input.size()
-                    << ", Expected: "
-                    << m_state.config.sizeVec[0]);
-    }
-
     // When not training, dont need to cache weightedSum
     // m_layers[i].output = activFunc(matrixAdd(matrixMulti(input, m_layers[i].weights), m_layers[i].bias));
 
     // Propergate input layer
-    m_state.layers[0].weightedSum = (m_state.layers[0].weights * input) + m_state.layers[0].bias;
+    m_state.layers[0].weightedSum = (m_state.layers[0].weights * *m_state.input) + m_state.layers[0].bias;
     m_state.layers[0].output = Matrix::apply(m_state.layers[0].weightedSum, m_state.layerActivFunc[0].ptr, m_stateAccess);
 
     for (unsigned i = 1; i < m_state.layers.size(); ++i) {
@@ -105,6 +107,22 @@ void Model::propergate(const Vector& input)
     if (m_state.config.softMax) {
         softMax(m_state.layers.back().output);
     }
+}
+
+const Vector& Model::propergate(const Vector& input)
+{
+    if (input.size() != m_state.config.sizeVec[0]) {
+        THROW_ERROR("Invalid input size: "
+                    << input.size()
+                    << ", Expected: "
+                    << m_state.config.sizeVec[0]);
+    }
+
+    m_state.input = &input;
+
+    propergate();
+
+    return output();
 }
 
 void Model::train(const Matrix& input, const Matrix& target)
@@ -152,11 +170,14 @@ void Model::train(const Matrix& input, const Matrix& target)
             // Training batch
             size_t batchMax = std::min(inputIdx + m_state.config.batchSize, nSamples);
 
-            Vector error(m_state.layers.back().size(), 1);
+//            Vector error(m_state.layers.back().size(), 1);
 
-            Vector avg_error(m_state.layers.back().size(), 0.0);
+//            Vector avg_error(m_state.layers.back().size(), 0.0);
 
-            Vector avg_input(m_state.config.sizeVec.front(), 0.0);
+//            Vector avg_input(m_state.config.sizeVec.front(), 0.0);
+
+            m_state.avg_error.fill(0.0);
+            m_state.avg_input.fill(0.0);
 
             for (size_t batchIdx = inputIdx; batchIdx < batchMax; ++batchIdx) {
 
@@ -164,30 +185,30 @@ void Model::train(const Matrix& input, const Matrix& target)
                 propergate(input.row(batchIdx));
 
                 // Calc error vector, average over batch
-                error = Matrix::zip(m_state.layers.back().output, target.row(batchIdx), m_state.costFunc.ptr, m_stateAccess);
+                m_state.error = Matrix::zip(m_state.layers.back().output, target.row(batchIdx), m_state.costFunc.ptr, m_stateAccess);
 
                 // Save error to get average
                 // Note: avg_error.size() == output.size() == target.size()
-                avg_error += error;
+                m_state.avg_error += m_state.error;
 
                 // Average input
-                avg_input += input.row(batchIdx);
+                m_state.avg_input += input.row(batchIdx);
 
                 // Print
                 if ((batchIdx % m_state.config.printInterval) == 0) {
-                    printState(input.row(batchIdx), target.row(batchIdx), error, batchIdx);
+                    printState(input.row(batchIdx), target.row(batchIdx), m_state.error, batchIdx);
                 }
             }
 
 
             // Divide to get avgerages
             size_t nSamples = batchMax - inputIdx;
-            avg_error /= nSamples;
-            avg_input /= nSamples;
+            m_state.avg_error /= nSamples;
+            m_state.avg_input /= nSamples;
 
 
             // Optimize on avg_error
-            m_state.optFunc.ptr(avg_input, avg_error, m_stateAccess);
+            m_state.optFunc.ptr(m_stateAccess);
 
 
             // Update index
@@ -357,20 +378,67 @@ void Model::printState(Vector input, Vector target, Vector error, size_t batchId
     std::cout << ss.str() << std::endl;
 }
 
-void Model::setTraningData(const Matrix &input, const Matrix &target)
+void Model::setInput(const Vector& input)
 {
-//    m_state.input = input;
-//    m_state.target = target;
+    if (input.size() != m_state.config.sizeVec.front()) {
+        THROW_ERROR("Invalid input size: "
+                    << input.size()
+                    << ", Expected: "
+                    << m_state.config.sizeVec.front());
+    }
+
+    m_state.input = &input;
+}
+
+void Model::setTarget(const Vector& target)
+{
+    if (target.size() != m_state.config.sizeVec.back()) {
+        THROW_ERROR("Invalid target size: "
+                    << target.size()
+                    << ", Expected: "
+                    << m_state.config.sizeVec.back());
+    }
+
+    m_state.target = &target;
 }
 
 void Model::step()
 {
-    // copy from train()
-    // one step should be one propergation,
-    // and if batchSize allows, one backprop also
-    // Or perhaps only one prop per step? No matter what
+    // Propergate
+    propergate();
 
-    //    ++m_state.step;
+    // Calc error
+    m_state.error = Matrix::zip(m_state.layers.back().output, *m_state.target,
+                                m_state.costFunc.ptr, m_stateAccess);
+
+    // Optimize if a batch is done
+    if (m_state.config.batchSize == 1) {
+
+        // Optimize
+//        m_state.optFunc.ptr(m_stateAccess);
+
+    } else {
+
+        // Save error and input to get average later
+        m_state.avg_error += m_state.error;
+        m_state.avg_input += *m_state.input;
+
+        if ((m_state.step % m_state.config.batchSize) == 0) {
+            // Averages
+            m_state.avg_error /= m_state.config.batchSize;
+            m_state.avg_input /= m_state.config.batchSize;
+
+            // Optimize
+//            m_state.optFunc.ptr(m_stateAccess);
+
+            // Reset averages
+            m_state.avg_error.fill(0.0);
+            m_state.avg_input.fill(0.0);
+        }
+    }
+
+    // Step
+    ++m_state.step;
 }
 
 State::Config &Model::config()
@@ -483,7 +551,7 @@ void Model::setOptimizeFunction(OptimizeFunction::BACKPROP opt_func)
     m_state.optFunc.ptr = optimize_func_backprop;
 }
 
-void Model::setOptimizeFunction(void (*optFunc)(const Vector&, const Vector&, StateAccess&))
+void Model::setOptimizeFunction(void (*optFunc)(StateAccess&))
 {
     m_state.optFunc.type = State::OptFuncType::CUSTOM;
     m_state.optFunc.ptr = optFunc;

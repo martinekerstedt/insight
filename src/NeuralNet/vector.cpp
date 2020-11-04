@@ -36,6 +36,24 @@ Vector::Vector(const std::initializer_list<real>& list) :
 
 }
 
+void Vector::resize(unsigned size, real val)
+{
+    if ((m_rows == 0) || (m_cols == 0)) {
+        m_rows = size;
+        m_cols = 1;
+    } else if (m_rows >= m_cols) {
+        // Row major
+        m_rows = size;
+        m_cols = 1;
+    } else {
+        // Col major
+        m_rows = 1;
+        m_cols = size;
+    }
+
+    m_vec.resize(size, val);
+}
+
 void Vector::pushBack(const real &elem)
 {
     m_vec.push_back(elem);

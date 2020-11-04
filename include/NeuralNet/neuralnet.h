@@ -58,14 +58,16 @@ public:
 
     // Function to save network
 
-    void propergate(const Vector& input);
+    void propergate();
+    const Vector& propergate(const Vector& input);
     void train(const Matrix& input, const Matrix& target);
     void softMax(Vector& vec);
     const Vector& output();
     void save(std::string dir);
     void printState(Vector input, Vector target, Vector error, size_t batchIdx);
 
-    void setTraningData(const Matrix& input, const Matrix& target);
+    void setInput(const Vector& input);
+    void setTarget(const Vector& target);
     void step();
 
     State::Config& config();
@@ -87,7 +89,7 @@ public:
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func);
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func);
 
-    void setOptimizeFunction(void (*optFunc)(const Vector&, const Vector&, StateAccess&));
+    void setOptimizeFunction(void (*optFunc)(StateAccess&));
     void setOptimizeFunction(OptimizeFunction::TEST opt_func);
     void setOptimizeFunction(OptimizeFunction::BACKPROP opt_func);
 

@@ -276,9 +276,14 @@ Vector Matrix::col(const unsigned& col) const
     return vec;
 }
 
-void Matrix::resize(unsigned rows, unsigned cols)
+void Matrix::fill(real val)
 {
-    m_vec.resize(rows*cols);
+    std::fill(m_vec.begin(), m_vec.end(), val);
+}
+
+void Matrix::resize(unsigned rows, unsigned cols, real val)
+{
+    m_vec.resize(rows*cols, val);
     m_rows = rows;
     m_cols = cols;
 }

@@ -48,7 +48,7 @@ real cost_func_square_difference(real output, real target, StateAccess& net);
 real cost_func_cross_entropy(real output, real target, StateAccess& net);
 
 // Optimizer function declarations
-void optimize_func_backprop(const Vector& input, const Vector& error, StateAccess& net);
+void optimize_func_backprop(StateAccess& net);
 
 
 } // namespace NeuralNet

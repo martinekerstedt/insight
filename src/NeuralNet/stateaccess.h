@@ -114,6 +114,8 @@ public:
     StateAccess(State& state) :
         input(state.input),
         error(state.error),
+        avg_input(state.avg_input),
+        avg_error(state.avg_error),
         initFuncType(state.initFunc.type),
         costFuncType(state.costFunc.type),
         optFuncType(state.optFunc.type),
@@ -130,6 +132,10 @@ public:
     // Current input and error
     const Vector* input;
     const Vector& error;
+
+    // Average input and error over a batch
+    const Vector& avg_input;
+    const Vector& avg_error;
 
     // Currently selected functions, read only
     const State::InitFuncType& initFuncType;
@@ -165,9 +171,9 @@ public:
         return m_state.costFunc.ptr(output, target, *this);
     }
 
-    void optimizeFunction(const Vector& input, const Vector& error)
+    void optimizeFunction()
     {
-        m_state.optFunc.ptr(input, error, *this);
+        m_state.optFunc.ptr(*this);
     }
 
     // All user definable function pointers

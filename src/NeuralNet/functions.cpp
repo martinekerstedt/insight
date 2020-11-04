@@ -233,7 +233,7 @@ real cost_func_cross_entropy(real output, real target, NeuralNet::StateAccess& n
 }
 
 // Optimize functions
-void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet::StateAccess& net)
+void optimize_func_backprop(NeuralNet::StateAccess& net)
 {
 //    OptimizeFunction::BACKPROP& cfg = net.m_state.optFunc.cfg.backprop;
 //    std::vector<State::Layer>& layers = net.m_state.layers;
@@ -243,7 +243,7 @@ void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet:
     auto afd = net.activationFunctionDerivate(0);
 
     // Backprop output layer
-    layers.back().gradient = error*cfg.learningRate;
+    layers.back().gradient = net.avg_error*cfg.learningRate;
 
     // Loop backwards
     for (int i = (layers.size() - 2); i >= 0; --i) {
@@ -260,7 +260,7 @@ void optimize_func_backprop(const Vector& input, const Vector& error, NeuralNet:
     }
 
     layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
-            * input.trans();
+            * net.avg_input.trans();
 }
 
 

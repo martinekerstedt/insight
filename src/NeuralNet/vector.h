@@ -16,6 +16,8 @@ public:
     template <typename E> requires(is_expr<E>)
     Vector(const E& expr) : Matrix(expr) {}
 
+    void resize(unsigned size, real val = 0.0);
+
     void pushBack(const real& elem);
     void popBack();
 

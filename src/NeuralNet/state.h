@@ -161,7 +161,7 @@ struct State
     {
         OptFuncConfig cfg;
         OptFuncType type;
-        void (*ptr)(const Vector&, const Vector&, StateAccess&);
+        void (*ptr)(StateAccess&);
     } optFunc;
 
 };

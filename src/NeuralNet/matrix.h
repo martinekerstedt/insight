@@ -96,9 +96,9 @@ public:
 
     // Modify
     // Need difference between add new row and edit exisiting row
+    void fill(real val);
     void reserve(unsigned size);
-    void resize(unsigned rows, unsigned cols);
-    void resize(unsigned size);
+    void resize(unsigned rows, unsigned cols, real val = 0.0);
     void addRow(const Vector& row);                                             // vec: delete
     void addCol(const Vector& col);                                             // vec: delete        
 
