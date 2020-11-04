@@ -97,7 +97,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE
+    PUBLIC
         Threads::Threads
 )
 
@@ -125,8 +125,6 @@ endif()
 if (BUILD_EXAMPLE)
     add_subdirectory(examples/mnist)
 endif()
-
-
 
 
 
