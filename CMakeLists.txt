@@ -74,6 +74,7 @@ add_library(${PROJECT_NAME}
         src/NeuralNet/functions.cpp
         src/NeuralNet/matrix.cpp
         src/NeuralNet/vector.cpp
+        src/NeuralNet/vectorview.cpp
 )
 
 

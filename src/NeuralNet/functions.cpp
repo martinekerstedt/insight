@@ -243,7 +243,8 @@ void optimize_func_backprop(NeuralNet::StateAccess& net)
     auto afd = net.activationFunctionDerivate(0);
 
     // Backprop output layer
-    layers.back().gradient = net.avg_error*cfg.learningRate;
+//    layers.back().gradient = net.avg_error*cfg.learningRate;
+    layers.back().gradient = net.error*cfg.learningRate;
 
     // Loop backwards
     for (int i = (layers.size() - 2); i >= 0; --i) {
@@ -259,6 +260,8 @@ void optimize_func_backprop(NeuralNet::StateAccess& net)
                 * layers[i - 1].output.trans();
     }
 
+//    layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
+//            * net.avg_input.trans();
     layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
             * net.avg_input.trans();
 }

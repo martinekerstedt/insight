@@ -32,6 +32,11 @@ public:
         return *this;
     }
 
+    std::vector<real, std::allocator<real>>::iterator begin();
+    std::vector<real, std::allocator<real>>::iterator end();
+    std::vector<real, std::allocator<real>>::const_iterator cbegin() const;
+    std::vector<real, std::allocator<real>>::const_iterator cend() const;
+
     // Deleted functions
     void addRow(const Vector& row) = delete;
     void addCol(const Vector& col) = delete;

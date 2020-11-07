@@ -130,7 +130,8 @@ public:
     }
 
     // Current input and error
-    const Vector* input;
+//    const Vector* input;
+    VectorView input;
     const Vector& error;
 
     // Average input and error over a batch

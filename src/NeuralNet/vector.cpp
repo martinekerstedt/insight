@@ -98,7 +98,25 @@ real Vector::back() const
     return m_vec.back();
 }
 
+std::vector<real, std::allocator<real>>::iterator Vector::begin()
+{
+    return m_vec.begin();
+}
 
+std::vector<real, std::allocator<real>>::iterator Vector::end()
+{
+    return m_vec.end();
+}
+
+std::vector<real, std::allocator<real>>::const_iterator Vector::cbegin() const
+{
+    return m_vec.cbegin();
+}
+
+std::vector<real, std::allocator<real>>::const_iterator Vector::cend() const
+{
+    return m_vec.cend();
+}
 
 
 

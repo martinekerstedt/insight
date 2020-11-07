@@ -48,16 +48,18 @@ int main()
     net.config().printInterval = 10000;
     net.config().softMax = false;
 
-//    OptimizeFunction::BACKPROP cfg;
-//    cfg.learningRate = 0.05;
-//    net.setOptimizeFunction(cfg);
+
+    OptimizeFunction::BACKPROP cfg;
+    cfg.learningRate = 0.06;
+    net.setOptimizeFunction(cfg);
 
 //    InitializationFunction::RANDOM_UNIFORM cfg2;
 //    net.setInitializationFunction(cfg2);
         
     
     // Train
-    net.train(train_images, train_labels);
+//    net.train(train_images, train_labels);
+    net.train(train_images, train_labels, 2);
 
 
     // Test
@@ -125,9 +127,9 @@ int main()
 
 
         // Print
-//        if (uncertainRes) {
+        if (uncertainRes) {
 //            continue;
-//        }
+        }
 
 
     }

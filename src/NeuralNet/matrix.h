@@ -10,9 +10,7 @@
 #include <thread>
 #include <algorithm>
 
-class Vector;
-
-// TODO: Move sematics https://stackoverflow.com/questions/3106110/what-is-move-semantics
+//class Vector;
 
 class Matrix
 {
@@ -91,8 +89,9 @@ public:
     const real& operator()(const unsigned& row, const unsigned& col) const;     // vec: delete
     const real& operator()(const unsigned& idx) const;                          // vec: exactly same
 
-    Vector row(const unsigned& row) const;
-    Vector col(const unsigned& row) const;
+//    Vector row(const unsigned& row) const;
+    VectorView row(const unsigned& row) const;
+//    Vector col(const unsigned& row) const;
 
     // Modify
     // Need difference between add new row and edit exisiting row

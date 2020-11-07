@@ -9,7 +9,7 @@
 // since this file is included into mat.h
 // where the header guard will stop this include
 #include <NeuralNet/matrix.h>
-#include <functional>
+
 
 
 // Need a map function, to deal with activation functions

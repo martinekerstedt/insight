@@ -39,11 +39,16 @@ Model::Model(const std::vector<size_t>& sizeVec) :
         }
     }
 
+    // Config
     m_state.config.sizeVec = sizeVec;
     m_state.config.batchSize = 1;
     m_state.config.nEpochs = 1;
     m_state.config.printInterval = 1;
     m_state.config.softMax = false;
+
+
+    // Step
+    m_state.step = 0;
 
 
     // Default initialization function
@@ -95,7 +100,8 @@ void Model::propergate()
     // m_layers[i].output = activFunc(matrixAdd(matrixMulti(input, m_layers[i].weights), m_layers[i].bias));
 
     // Propergate input layer
-    m_state.layers[0].weightedSum = (m_state.layers[0].weights * *m_state.input) + m_state.layers[0].bias;
+//    m_state.layers[0].weightedSum = (m_state.layers[0].weights * *m_state.input) + m_state.layers[0].bias;
+    m_state.layers[0].weightedSum = (m_state.layers[0].weights * m_state.input) + m_state.layers[0].bias;
     m_state.layers[0].output = Matrix::apply(m_state.layers[0].weightedSum, m_state.layerActivFunc[0].ptr, m_stateAccess);
 
     for (unsigned i = 1; i < m_state.layers.size(); ++i) {
@@ -170,19 +176,19 @@ void Model::train(const Matrix& input, const Matrix& target)
             // Training batch
             size_t batchMax = std::min(inputIdx + m_state.config.batchSize, nSamples);
 
-//            Vector error(m_state.layers.back().size(), 1);
-
-//            Vector avg_error(m_state.layers.back().size(), 0.0);
-
-//            Vector avg_input(m_state.config.sizeVec.front(), 0.0);
-
+            // Reset averages
             m_state.avg_error.fill(0.0);
             m_state.avg_input.fill(0.0);
 
+            // Batch
             for (size_t batchIdx = inputIdx; batchIdx < batchMax; ++batchIdx) {
 
-                // Propergate input vector
-                propergate(input.row(batchIdx));
+                // Propergate input vector                
+//                propergate(input.row(batchIdx));
+
+                m_state.input = input.row(batchIdx);
+                propergate();
+
 
                 // Calc error vector, average over batch
                 m_state.error = Matrix::zip(m_state.layers.back().output, target.row(batchIdx), m_state.costFunc.ptr, m_stateAccess);
@@ -217,6 +223,54 @@ void Model::train(const Matrix& input, const Matrix& target)
     }
 }
 
+void Model::train(const Matrix& input, const Matrix& target, unsigned nEpochs)
+{
+    // Check sizes
+    if (input.rows() != target.rows()) {
+        THROW_ERROR("Input and Target matricies must have equal number of rows.\n"
+                    << input.rows()
+                    << " != "
+                    << target.rows());
+    }
+
+    if (input.cols() != m_state.config.sizeVec.front()) {
+        THROW_ERROR("Number of cols in input matrix must equal number of input neurons.\n"
+                    << input.cols()
+                    << " != "
+                    << m_state.config.sizeVec.front());
+    }
+
+    if (target.cols() != m_state.config.sizeVec.back()) {
+        THROW_ERROR("Number of cols in target matrix must equal number of output neurons.\n"
+                    << input.cols()
+                    << " != "
+                    << m_state.config.sizeVec.front());
+    }
+
+    // Number of training samples
+    size_t nSamples = input.rows();
+
+    // Reset step
+    m_state.step = 0;
+
+    // Number of epochs
+    for (size_t epoch = 0; epoch < nEpochs; ++epoch) {
+
+
+        // Change print interval at last epoch
+        if (epoch >= (nEpochs - 1)) {
+            m_state.config.printInterval = 500;
+        }
+
+        for (unsigned i = 0; i < nSamples; ++i) {
+            m_state.input = input.row(i);
+            m_state.target = target.row(i);
+
+            step();
+        }
+    }
+}
+
 void Model::softMax(Vector& output)
 {
     real sum = 0;
@@ -238,6 +292,7 @@ const Vector& Model::output()
 
 void Model::save(std::string dir)
 {
+    (void)dir;
     // Need to save m_sizeVec, weights and biases
     // Maybe also all other config
 
@@ -276,6 +331,8 @@ void Model::save(std::string dir)
 
 void Model::printState(Vector input, Vector target, Vector error, size_t batchIdx)
 {
+    (void)input;
+
     // Create stream
     std::stringstream ss;
     ss << std::fixed << std::setprecision(2);
@@ -404,41 +461,55 @@ void Model::setTarget(const Vector& target)
 
 void Model::step()
 {
+    // Step
+    ++m_state.step;
+
     // Propergate
     propergate();
-
-    // Calc error
-    m_state.error = Matrix::zip(m_state.layers.back().output, *m_state.target,
-                                m_state.costFunc.ptr, m_stateAccess);
 
     // Optimize if a batch is done
     if (m_state.config.batchSize == 1) {
 
+        // Calc error
+        m_state.error = Matrix::zip(m_state.layers.back().output, m_state.target,
+                                    m_state.costFunc.ptr, m_stateAccess);
+
+        m_state.avg_input = m_state.input;
+
         // Optimize
-//        m_state.optFunc.ptr(m_stateAccess);
+        m_state.optFunc.ptr(m_stateAccess);
 
     } else {
 
         // Save error and input to get average later
-        m_state.avg_error += m_state.error;
-        m_state.avg_input += *m_state.input;
+        m_state.error += Matrix::zip(m_state.layers.back().output, m_state.target,
+                                         m_state.costFunc.ptr, m_stateAccess);
 
+        m_state.avg_input += m_state.input;
+
+        // Optimize if a batch is done
         if ((m_state.step % m_state.config.batchSize) == 0) {
+
             // Averages
-            m_state.avg_error /= m_state.config.batchSize;
+            m_state.error /= m_state.config.batchSize;
             m_state.avg_input /= m_state.config.batchSize;
 
+            // Set input to optimize on
+//            m_state.input = &m_state.avg_input;
+
             // Optimize
-//            m_state.optFunc.ptr(m_stateAccess);
+            m_state.optFunc.ptr(m_stateAccess);
 
             // Reset averages
-            m_state.avg_error.fill(0.0);
+            m_state.error.fill(0.0);
             m_state.avg_input.fill(0.0);
         }
     }
 
-    // Step
-    ++m_state.step;
+    // Print
+    if ((m_state.step % m_state.config.printInterval) == 1) {
+        printState(m_state.avg_input, m_state.target, m_state.error, m_state.step);
+    }
 }
 
 State::Config &Model::config()

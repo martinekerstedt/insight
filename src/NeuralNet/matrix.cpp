@@ -1,5 +1,6 @@
 #include <NeuralNet/matrix.h>
 #include <NeuralNet/vector.h>
+#include <NeuralNet/vectorview.h>
 #include <sstream>
 #include <iomanip>
 
@@ -250,31 +251,38 @@ const real& Matrix::operator()(const unsigned& idx) const
     return m_vec[idx];
 }
 
-Vector Matrix::row(const unsigned& row) const
+//Vector Matrix::row(const unsigned& row) const
+//{
+//    // Could create a vector of references and return it
+//    // Then you could access the elements in the matrix
+//    // through the vector
+
+//    Vector vec(m_cols);
+
+//    for (unsigned i = 0; i < m_cols; ++i) {
+//        vec(i) = m_vec[row*m_cols + i];
+//    }
+
+//    return vec;
+//}
+
+VectorView Matrix::row(const unsigned& row) const
 {
-    // Could create a vector of references and return it
-    // Then you could access the elements in the matrix
-    // through the vector
+    VectorView vecView(this, &m_vec[row*m_cols], m_cols);
 
-    Vector vec(m_cols);
-
-    for (unsigned i = 0; i < m_cols; ++i) {
-        vec(i) = m_vec[row*m_cols + i];
-    }
-
-    return vec;
+    return vecView;
 }
 
-Vector Matrix::col(const unsigned& col) const
-{
-    Vector vec(m_rows);
+//Vector Matrix::col(const unsigned& col) const
+//{
+//    Vector vec(m_rows);
 
-    for (unsigned i = 0; i < m_rows; ++i) {
-        vec(i) = m_vec[i*m_cols + col];
-    }
+//    for (unsigned i = 0; i < m_rows; ++i) {
+//        vec(i) = m_vec[i*m_cols + col];
+//    }
 
-    return vec;
-}
+//    return vec;
+//}
 
 void Matrix::fill(real val)
 {

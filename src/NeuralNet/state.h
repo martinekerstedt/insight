@@ -3,7 +3,7 @@
 
 #include <NeuralNet/matrix.h>
 #include <NeuralNet/vector.h>
-
+#include <NeuralNet/vectorview.h>
 
 namespace NeuralNet
 {
@@ -56,11 +56,13 @@ struct State
     std::vector<Layer> layers;
 
     // Input
-    const Vector* input; // Should perhaps be a view type
+//    const Vector* input; // Should perhaps be a view type
+    VectorView input;
     Vector avg_input;
 
     // Target
-    const Vector* target;
+//    const Vector* target;
+    VectorView target;
 
     // Error
     Vector error;
