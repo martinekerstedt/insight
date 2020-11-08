@@ -50,7 +50,7 @@ int main()
 
 
     OptimizeFunction::BACKPROP cfg;
-    cfg.learningRate = 0.06;
+    cfg.learningRate = 0.08;
     net.setOptimizeFunction(cfg);
 
 //    InitializationFunction::RANDOM_UNIFORM cfg2;

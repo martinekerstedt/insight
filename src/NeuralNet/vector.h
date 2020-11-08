@@ -13,7 +13,7 @@ public:
     Vector(const std::vector<real>& vec);
     Vector(const std::initializer_list<real>& list);
 
-    template <typename E> requires(is_expr<E>)
+    template <Expr E>
     Vector(const E& expr) : Matrix(expr) {}
 
     void resize(unsigned size, real val = 0.0);
@@ -24,7 +24,7 @@ public:
     real front() const;
     real back() const;
 
-    template <typename E> requires(is_expr<E>)
+    template <Expr E>
     Vector operator=(const E& rhs)
     {
         Matrix::operator=(rhs);

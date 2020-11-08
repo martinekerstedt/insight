@@ -25,12 +25,12 @@ VectorView::VectorView(const Vector *src) :
 
 }
 
-MatExprTrans<VectorView> VectorView::trans() const
+ExprTrans<VectorView> VectorView::trans() const
 {
-    return MatExprTrans<VectorView>(*const_cast<VectorView*>(this));
+    return ExprTrans<VectorView>(*const_cast<VectorView*>(this));
 }
 
-const real& VectorView::operator()(const unsigned& row, const unsigned& col) const
+real VectorView::operator()(const unsigned row, const unsigned col) const
 {
     if (row >= m_size) {
         THROW_ERROR("Index out of bounds.\n"
@@ -47,7 +47,7 @@ const real& VectorView::operator()(const unsigned& row, const unsigned& col) con
     return m_ptr[row];
 }
 
-const real& VectorView::operator()(const unsigned& idx) const
+real VectorView::operator()(const unsigned idx) const
 {
     if (idx >= m_size) {
         THROW_ERROR("Index out of bounds.\n"

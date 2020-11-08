@@ -3,18 +3,18 @@
 
 #include <Common/types.h>
 #include <Common/parallelfor.h>
-#include <vector>
 #include <NeuralNet/matexpr_base.h>
+#include <vector>
 
 
-#include <thread>
-#include <algorithm>
+class Vector;
+class VectorView;
 
-//class Vector;
 
-class Matrix
+class Matrix : public ExprInterface
 {
 public:
+    // Constructors
     Matrix();
     Matrix(unsigned rows, unsigned cols);
     Matrix(unsigned rows, unsigned cols, const real& initVal);
@@ -25,7 +25,7 @@ public:
     Matrix(const std::initializer_list<real>& list);
     Matrix(const std::initializer_list<std::initializer_list<real>>& row_list);
 
-    template <class E> requires(is_expr<E>)
+    template <Expr E>
     Matrix(const E& expr) :
         m_rows(expr.rows()),
         m_cols(expr.cols())
@@ -34,76 +34,78 @@ public:
         evalExpr(expr);
     }
 
+
     // Matrix/Matrix operators
-    bool operator==(const Matrix& rhs) const;                                         // vec: exactly same
-    bool operator!=(const Matrix& rhs) const;                                         // vec: exactly same
+    bool operator==(const Matrix& rhs) const;
+    bool operator!=(const Matrix& rhs) const;
 
-    template <class E> requires(is_expr<E>)
-    Matrix& operator+=(const E& rhs)
+    template <Expr RHS>
+    Matrix& operator+=(const RHS& rhs)
     {
-        *this = MatExprAdd<Matrix, E>(*this, rhs);
+        *this = ExprAdd<Matrix, RHS>(*this, rhs);
         return (*this);
     }
 
-    template <class E> requires(is_expr<E>)
-    Matrix& operator-=(const E& rhs)
+    template <Expr RHS>
+    Matrix& operator-=(const RHS& rhs)
     {
-        *this = MatExprSub<Matrix, E>(*this, rhs);
+        *this = ExprSub<Matrix, RHS>(*this, rhs);
         return (*this);
     }
 
-    template <class E> requires(is_expr<E>)
-    Matrix& operator*=(const E& rhs)
+    template <Expr RHS>
+    Matrix& operator*=(const RHS& rhs)
     {
-        *this = MatExprMatMul<Matrix, E>(*this, rhs);
+        *this = ExprMatMul<Matrix, RHS>(*this, rhs);
         return (*this);
+    }
+
+
+    // Matrix operators
+    ExprTrans<Matrix> trans() const;
+
+    template <Expr LHS, Expr RHS>
+    static auto mulEWise(const LHS& lhs, const RHS& rhs)
+    {
+        return ExprEWiseMul<LHS, RHS>(lhs, rhs);
     }
 
 
     // Matrix/scalar operators
-    Matrix& operator+=(const real& rhs);                                        // vec: exactly same
-    Matrix& operator-=(const real& rhs);                                        // vec: exactly same
-    Matrix& operator*=(const real& rhs);                                        // vec: exactly same
-    Matrix& operator/=(const real& rhs);                                        // vec: exactly same
-
-    // Matrix operators
-    MatExprTrans<Matrix> trans() const;                                                       // vec: exactly same
-
-    template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
-    static auto mulEWise(const E1& lhs, const E2& rhs)
-    {
-        return MatExprEWiseMul<E1, E2>(lhs, rhs);
-    }
+    Matrix& operator+=(const real& rhs);
+    Matrix& operator-=(const real& rhs);
+    Matrix& operator*=(const real& rhs);
+    Matrix& operator/=(const real& rhs);
 
 
     // Access
-    std::vector<real>& vec();               // Remove, only access .data()      // vec: exactly same
-    const std::vector<real>& vec() const;   // Remove, only access .data()      // vec: exactly same
-//    real* data();
-//    const real* data() const;
-    unsigned rows() const;                                                      // vec: exactly same
-    unsigned cols() const;                                                      // vec: exactly same
-    unsigned size() const;                                                      // vec: exactly same
-    real& operator()(const unsigned& row, const unsigned& col);                 // vec: delete
-    real& operator()(const unsigned& idx);                                      // vec: exactly same
-    const real& operator()(const unsigned& row, const unsigned& col) const;     // vec: delete
-    const real& operator()(const unsigned& idx) const;                          // vec: exactly same
-
-//    Vector row(const unsigned& row) const;
+    std::vector<real>& vec();
+    const std::vector<real>& vec() const;
+    unsigned rows() const;
+    unsigned cols() const;
+    unsigned size() const;
+    real& operator()(const unsigned& row, const unsigned& col);
+    real& operator()(const unsigned& idx);
+    real operator()(const unsigned row, const unsigned col) const;
+    real operator()(const unsigned& idx) const;
     VectorView row(const unsigned& row) const;
+//    Vector row(const unsigned& row) const;
 //    Vector col(const unsigned& row) const;
+
 
     // Modify
     // Need difference between add new row and edit exisiting row
     void fill(real val);
     void reserve(unsigned size);
     void resize(unsigned rows, unsigned cols, real val = 0.0);
-    void addRow(const Vector& row);                                             // vec: delete
-    void addCol(const Vector& col);                                             // vec: delete        
+    void addRow(const Vector& row);
+    void addCol(const Vector& col);
+
 
     // Utility
-    std::string num2str(real num);                                              // vec: exactly same
-    std::string str();                                                          // vec: exactly same
+    std::string num2str(real num);
+    std::string str();
+
 
     // Lazy evaluation
     bool sourceOk(const Matrix& destMat);
@@ -118,8 +120,8 @@ public:
         return 1;
     }
 
-    template <class E> requires(is_expr<E>)
-    Matrix operator=(const E& rhs)
+    template <Expr RHS>
+    Matrix operator=(const RHS& rhs)
     {
         m_rows = rhs.rows();
         m_cols = rhs.cols();
@@ -130,11 +132,11 @@ public:
         return *this;
     }
 
-    template <class E> requires(is_expr<E>)
-    void evalExpr(const E& rhs)
+    template <Expr RHS>
+    void evalExpr(const RHS& rhs)
     {
         // Cache if needed
-        const_cast<E&>(rhs).sourceOk(*this);
+        const_cast<RHS&>(rhs).sourceOk(*this);
 
         // Eval
         parallel_for([&](unsigned start, unsigned end)
@@ -146,30 +148,29 @@ public:
     }
 
 
-    template<class E, class func> requires(is_expr<E>)
+    template<Expr E, class func>
     static auto apply(const E& expr, func f)
     {
-        return MatExprApply<E, func>(expr, f);
+        return ExprApply<E, func>(expr, f);
     }
 
-    template<class E, class func, class... args> requires(is_expr<E>)
+    template<Expr E, class func, class... args>
     static auto apply(const E& expr, func f, const args&... a)
     {
-        return MatExprApply<E, func, args...>(expr, f, a...);
+        return ExprApply<E, func, args...>(expr, f, a...);
     }
 
-    template<class E1, class E2, class func> requires(is_expr<E1> && is_expr<E2>)
-    static auto zip(const E1& lhs, const E2& rhs, func f)
+    template<Expr LHS, Expr RHS, class func>
+    static auto zip(const LHS& lhs, const RHS& rhs, func f)
     {
-        return MatExprZip<E1, E2, func>(lhs, rhs, f);
+        return ExprZip<func, LHS, RHS>(f, rhs, lhs);
     }
 
-    template<class E1, class E2, class func, class... args> requires(is_expr<E1> && is_expr<E2>)
-    static auto zip(const E1& lhs, const E2& rhs, func f, const args&... a)
+    template<Expr LHS, Expr RHS, class func, class... args>
+    static auto zip(const LHS& lhs, const RHS& rhs, func f, const args&... a)
     {
-        return MatExprZip<E1, E2, func, args...>(lhs, rhs, f, a...);
+        return ExprZip<func, LHS, RHS, args...>(f, lhs, rhs, a...);
     }
-
 
 
 protected:

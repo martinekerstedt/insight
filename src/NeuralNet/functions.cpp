@@ -235,15 +235,11 @@ real cost_func_cross_entropy(real output, real target, NeuralNet::StateAccess& n
 // Optimize functions
 void optimize_func_backprop(NeuralNet::StateAccess& net)
 {
-//    OptimizeFunction::BACKPROP& cfg = net.m_state.optFunc.cfg.backprop;
-//    std::vector<State::Layer>& layers = net.m_state.layers;
-//    auto afd = net.m_state.layerActivFunc[0].derivPtr;
     const OptimizeFunction::BACKPROP& cfg = net.optFuncConfig.backprop;
     std::vector<State::Layer>& layers = net.layers;
     auto afd = net.activationFunctionDerivate(0);
 
     // Backprop output layer
-//    layers.back().gradient = net.avg_error*cfg.learningRate;
     layers.back().gradient = net.error*cfg.learningRate;
 
     // Loop backwards

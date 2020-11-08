@@ -3,7 +3,9 @@
 
 #include <NeuralNet/matexpr_base.h>
 
-class VectorView
+class Vector;
+
+class VectorView final : private ExprInterface
 {
 public:
     VectorView();
@@ -14,10 +16,10 @@ public:
 
     VectorView(const Vector* src);
 
-    MatExprTrans<VectorView> trans() const;
+    ExprTrans<VectorView> trans() const;
 
-    const real& operator()(const unsigned& row, const unsigned& col) const;
-    const real& operator()(const unsigned& idx) const;
+    real operator()(const unsigned row, const unsigned col) const;
+    real operator()(const unsigned idx) const;
 
     unsigned rows() const;
     unsigned cols() const;

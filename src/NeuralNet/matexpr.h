@@ -1,306 +1,236 @@
 ﻿#ifndef MATEXPR_H
 #define MATEXPR_H
 
+#include <NeuralNet/matexpr_base.h>
 #include <cassert>
 
 
-// Only needed to make the code model work
-// This include is not actually active
-// since this file is included into mat.h
-// where the header guard will stop this include
-#include <NeuralNet/matrix.h>
-
-
-
-// Need a map function, to deal with activation functions
-// Should have an argument to state the complexity of the function
-// Will default to high complexity
-
-// NSTO = Non singel traversal operation
-
-// Cache an operand to a NSTO if it involves computation that is above complexity
-// threshold.
-// A plain matrix doesn't. And neither does a transpose, if source ok.
-
-// Cache the result of a NSTO if either operand contain the destination
-
-template <bool sto, class E1, class E2 = void*>
-class MatExprBase : public virtual MatExpr
+// Zip
+//
+// All unary and binary matrix operations
+// where the operand matrix/matrices and the result matrix have the same size
+//
+// Requires: (args[0] == Expr) || ((args[0] == real) && (args[1] == Expr))
+template<class func, class... args>
+requires((is_expr<typename std::tuple_element<0,std::tuple<args...>>::type>)
+         || ((std::is_arithmetic_v<typename std::tuple_element<0,std::tuple<args...>>::type>)
+             && (is_expr<typename std::tuple_element<1,std::tuple<args...>>::type>)))
+struct ExprZip : private ExprBase
 {
+    using a0_t = typename std::tuple_element<0,std::tuple<args...>>::type;
+    using a1_t = typename std::tuple_element<1,std::tuple<args...>>::type;
 
-public:
-    MatExprBase(const E1& lhs, const E2& rhs) :
-        m_lhs(lhs),
-        m_rhs(rhs),
-        m_cached(false) {}
+    ExprZip(func f, const args&... a) :
+        m_func(f),
+        m_args(const_cast<args&>(a)...) {}
 
-    // Fix with std::optional
-    MatExprBase(const E1& lhs) :
-        m_lhs(lhs),
-        m_rhs(nullptr),
-        m_cached(false) {}
-
-    virtual real operator()(const unsigned row, const unsigned col) const = 0;
-    virtual unsigned rows() const = 0;
-    virtual unsigned cols() const = 0;
-    virtual unsigned evalCost() const = 0;
-
-    unsigned size() const
-    {
-        return rows()*cols();
-    }
-
-    bool sourceOk(const Matrix& destMat)
-    {
-        if constexpr (std::is_same_v<E2, void*>) {
-
-            // Unary expr
-
-            if constexpr (std::is_arithmetic_v<E1>) {
-                return true;
-            } else {
-
-                if constexpr (sto) {
-
-                    return const_cast<E1&>(m_lhs).sourceOk(destMat);
-
-                } else {
-
-                    if (!const_cast<E1&>(m_lhs).sourceOk(destMat)) {
-                        cache();
-                    }
-
-                    return true;
-                }
-            }
-
-        } else {
-
-            // Binary expr
-
-            if constexpr (sto) {
-
-                if constexpr (std::is_arithmetic_v<E1>) {
-                    return const_cast<E2&>(m_rhs).sourceOk(destMat);
-                } else if constexpr (std::is_arithmetic_v<E2>) {
-                    return const_cast<E1&>(m_lhs).sourceOk(destMat);
-                } else {
-                    return const_cast<E1&>(m_lhs).sourceOk(destMat) || const_cast<E2&>(m_rhs).sourceOk(destMat);
-                }
-
-            } else {
-
-                if constexpr (std::is_arithmetic_v<E1>) {
-                    if (!const_cast<E2&>(m_rhs).sourceOk(destMat)) {
-                        cache();
-                    }
-
-                    return true;
-
-                } else if constexpr (std::is_arithmetic_v<E2>) {
-                    if (!const_cast<E1&>(m_lhs).sourceOk(destMat)) {
-                        cache();
-                    }
-
-                    return true;
-
-                } else {
-                    if (!const_cast<E1&>(m_lhs).sourceOk(destMat)
-                            || !const_cast<E2&>(m_rhs).sourceOk(destMat)) {
-                        cache();
-                    }
-
-                    return true;
-                }
-            }
-        }
-    }
-
-    void cache()
-    {
-        m_tmp.resize(rows(), cols());
-
-        for (unsigned row = 0; row < rows(); ++row) {
-            for (unsigned col = 0; col < cols(); ++col) {
-                m_tmp(row, col) = operator()(row, col);
-            }
-        }
-
-        m_cached = true;
-    }
-
-protected:
-    const E1& m_lhs;
-    const E2& m_rhs;
-    bool m_cached;
-    Matrix m_tmp;
-
-};
-
-// Binary expressions
-// Addition
-template <class E1, class E2>
-class MatExprAdd : public MatExprBase<true, E1, E2>, virtual MatExpr
-{
-
-public:
-    MatExprAdd(const E1& lhs, const E2& rhs) :
-        MatExprBase<true, E1, E2>(lhs, rhs) {}
-
-    real operator()(unsigned row, unsigned col) const
+    real operator()(const unsigned row, const unsigned col) const
     {
         if (this->m_cached) {
-            return this->m_tmp(row, col);
+
+            return this->m_tmp[row*cols() + col];
+
         } else {
-            if constexpr (std::is_arithmetic_v<E1>) {
-                return this->m_lhs + this->m_rhs(row, col);
-            } else if constexpr (std::is_arithmetic_v<E2>) {
-                return this->m_lhs(row, col) + this->m_rhs;
+
+            if constexpr (sizeof...(args) == 1) {
+
+                // One arg, that is an Expr
+                return m_func((std::get<0>(m_args))(row, col));
+
+            } else if constexpr (sizeof...(args) == 2) {
+
+                if constexpr (is_expr<a0_t>) {
+
+                    if constexpr (is_expr<a1_t>) {
+
+                        // Two args, that both are Expr
+                        return m_func((std::get<0>(m_args))(row, col),
+                                      (std::get<1>(m_args))(row, col));
+
+                    } else {
+
+                       // Two args, only the first is Expr
+                       return m_func((std::get<0>(m_args))(row, col),
+                                     std::get<1>(m_args));
+                    }
+
+                } else {
+
+                    // Two args, first is arithmetic, second must be Expr
+                    return m_func(std::get<0>(m_args),
+                                  (std::get<1>(m_args))(row, col));
+                }
+
             } else {
-                return this->m_lhs(row, col) + this->m_rhs(row, col);
+
+                if constexpr (is_expr<a0_t>) {
+
+                    if constexpr (is_expr<a1_t>) {
+
+                        // First two args are Expr
+                        return apply2((std::get<0>(m_args)(row, col)),
+                                      (std::get<1>(m_args)(row, col)),
+                                      std::make_index_sequence<sizeof...(args) - 2>{});
+
+                    } else {
+
+                       // First arg is Expr
+                        return apply1((std::get<0>(m_args)(row, col)),
+                                      std::make_index_sequence<sizeof...(args) - 1>{});
+                    }
+
+                } else {
+
+                    // First is arithmetic, second must be Expr
+                    return apply2(std::get<0>(m_args),
+                                  (std::get<1>(m_args)(row, col)),
+                                  std::make_index_sequence<sizeof...(args) - 2>{});
+                }
             }
         }
+    }
+
+    template<std::size_t... Is>
+    auto apply1(real a, std::index_sequence<Is...>) const
+    {
+        return m_func(a, std::get<1 + Is>(m_args)...);
+    }
+
+    template<std::size_t... Is>
+    auto apply2(real a, real b, std::index_sequence<Is...>) const
+    {
+        return m_func(a, b, std::get<2 + Is>(m_args)...);
     }
 
     unsigned rows() const
     {
-        if constexpr (std::is_arithmetic_v<E1>) {
-            return this->m_rhs.rows();
+        if constexpr (is_expr<a0_t>) {
+            // First arg is Expr
+            return (std::get<0>(m_args)).rows();
         } else {
-            return this->m_lhs.rows();
+            return (std::get<1>(m_args)).rows();
         }
     }
 
     unsigned cols() const
     {
-        if constexpr (std::is_arithmetic_v<E1>) {
-            return this->m_rhs.cols();
+        if constexpr (is_expr<a0_t>) {
+            // First arg is Expr
+            return (std::get<0>(m_args)).cols();
         } else {
-            return this->m_lhs.cols();
+            return (std::get<1>(m_args)).cols();
         }
     }
 
     unsigned evalCost() const
     {
-        // Need to benchmark these to get values
-        // Cost/st is probably reduced as size grows,
-        // perhaps not for memory
-        enum class Cost
-        {
-            ADD = 1,
-            SUB = 1,
-            MUL = 4,
-            DIV = 4,
-            ALLOC_REAL = 50,
-            COPY_REAL = 50
-        };
-
-//        unsigned costOfOp = 1;
-//        unsigned costAlloc = 1;
-//        unsigned costAccessE1 = this->m_lhs.evalCost();
-//        unsigned costAccessE2 = this->m_rhs.evalCost();
-//        unsigned sizeE1 = this->m_lhs.size();
-//        unsigned sizeE2 = this->m_rhs.size();
-//        unsigned costCacheE1 = sizeE1 * (costAccessE1 * costAlloc);                                 // Total cost of caching E1, resulting in costAccessE1 = 1
-//        unsigned costCacheE2 = sizeE2 * (costAccessE2 * costAlloc);                                 // Total cost of caching E2, resulting in costAccessE2 = 1
-
-//        unsigned cacheE1cacheE2 = costOfOp + costCacheE1/this->size() + costCacheE2/this->size();
-//        unsigned notCacheE1cacheE2 = costOfOp + costAccessE1 + costCacheE2/this->size();
-//        unsigned cacheE1notCacheE2 = costOfOp + costCacheE1/this->size() + costAccessE2;
-//        unsigned notCacheE1notCacheE2 = costOfOp + costAccessE1 + costAccessE2;
-
+        // No additional cost
         return 1;
     }
+
+    bool sourceOk(const Matrix& destMat)
+    {
+        if constexpr (is_expr<a0_t>) {
+
+            if constexpr (is_expr<a1_t>) {
+                // Both is Expr
+                return (std::get<0>(m_args)).sourceOk(destMat)
+                        || (std::get<1>(m_args)).sourceOk(destMat);
+            } else {
+                // Only first arg is Expr
+                return (std::get<0>(m_args)).sourceOk(destMat);
+            }
+
+        } else {
+
+            // Second arg is Expr
+            return (std::get<1>(m_args)).sourceOk(destMat);
+        }
+    }
+
+private:
+    func m_func;
+    std::tuple<args&...> m_args;
+
+};
+
+
+// Addition
+template <class LHS, class RHS>
+struct ExprAdd final : public ExprZip<real (*)(const real&, const real&), LHS, RHS>
+{
+    ExprAdd(const LHS& lhs, const RHS& rhs) :
+        ExprZip<real (*)(const real&, const real&), LHS, RHS>
+        ([](const real& a, const real& b){return a+b;}, lhs, rhs) {}
 };
 
 
 // Subtraction
-template <class E1, class E2>
-struct MatExprSub : public MatExprAdd<E1, E2>, virtual MatExpr
+template <class LHS, class RHS>
+struct ExprSub final : public ExprZip<real (*)(const real&, const real&), LHS, RHS>
 {
-    MatExprSub(const E1& lhs, const E2& rhs) :
-        MatExprAdd<E1, E2>(lhs, rhs) {}
-
-    real operator()(unsigned row, unsigned col) const
-    {
-        if (this->m_cached) {
-            return this->m_tmp(row, col);
-        } else {
-            if constexpr (std::is_arithmetic_v<E2>) {
-                return this->m_lhs(row, col) - this->m_rhs;
-            } else {
-                return this->m_lhs(row, col) - this->m_rhs(row, col);
-            }
-        }
-    }
+    ExprSub(const LHS& lhs, const RHS& rhs) :
+        ExprZip<real (*)(const real&, const real&), LHS, RHS>
+        ([](const real& a, const real& b){return a-b;}, lhs, rhs) {}
 };
 
 
-// Division, only defined for Mat / Num
-template <class E1, class E2>
-struct MatExprDiv : public MatExprAdd<E1, E2>, virtual MatExpr
+// Division
+template <class LHS, class RHS>
+struct ExprDiv final : public ExprZip<real (*)(const real&, const real&), LHS, RHS>
 {
-    MatExprDiv(const E1& lhs, const E2& rhs) :
-        MatExprAdd<E1, E2>(lhs, rhs) {}
-
-    real operator()(unsigned row, unsigned col) const
-    {
-        if (this->m_cached) {
-            return this->m_tmp(row, col);
-        } else {
-            return this->m_lhs(row, col) / this->m_rhs;
-        }
-    }
+    ExprDiv(const LHS& lhs, const RHS& rhs) :
+        ExprZip<real (*)(const real&, const real&), LHS, RHS>
+        ([](const real& a, const real& b){return a/b;}, lhs, rhs) {}
 };
 
 
 // Element wise multiplication
-template <class E1, class E2>
-struct MatExprEWiseMul : public MatExprAdd<E1, E2>, virtual MatExpr
+template <class LHS, class RHS>
+struct ExprEWiseMul final : public ExprZip<real (*)(const real&, const real&), LHS, RHS>
 {
-    MatExprEWiseMul(const E1& lhs, const E2& rhs) :
-        MatExprAdd<E1, E2>(lhs, rhs) {}
+    ExprEWiseMul(const LHS& lhs, const RHS& rhs) :
+        ExprZip<real (*)(const real&, const real&), LHS, RHS>
+        ([](const real& a, const real& b){return a*b;}, lhs, rhs) {}
+};
 
-    real operator()(unsigned row, unsigned col) const
-    {
-        if (this->m_cached) {
-            return this->m_tmp(row, col);
-        } else {
-            if constexpr (std::is_arithmetic_v<E1>) {
-                return this->m_lhs * this->m_rhs(row, col);
-            } else if constexpr (std::is_arithmetic_v<E2>) {
-                return this->m_lhs(row, col) * this->m_rhs;
-            } else {
-                return this->m_lhs(row, col) * this->m_rhs(row, col);
-            }
-        }
-    }
+template <class E>
+struct ExprEWiseMulProxy
+{
+    const E& expr;   
+};
+
+
+// Apply
+template<class E, class func, class... args>
+struct ExprApply final : public ExprZip<func, E, args...>
+{
+    ExprApply(const E& lhs, func f, const args&... a) :
+        ExprZip<func, E, args...>(f, lhs, a...) {}
 };
 
 
 // Martrix multiplication
-template <class E1, class E2>
-class MatExprMatMul : public MatExprBase<false, E1, E2>, virtual MatExpr
+template <class LHS, class RHS>
+struct ExprMatMul final : private ExprBase
 {
-
-public:
-    MatExprMatMul(const E1& lhs, const E2& rhs) :
-        MatExprBase<false, E1, E2>(lhs, rhs)
+    ExprMatMul(const LHS& lhs, const RHS& rhs) :
+        m_lhs(lhs),
+        m_rhs(rhs)
     {
-        static_assert (!std::is_arithmetic_v<E1> && !std::is_arithmetic_v<E2>, "Must be MatExpr");
         assert(lhs.cols() == rhs.rows());
     }
 
     real operator()(unsigned row, unsigned col) const
     {
         if (this->m_cached) {
-            return this->m_tmp(row, col);
+            return this->m_tmp[row*cols() + col];
         } else {
             float sum = 0;
 
             // lhs.cols() == rhs.rows()
-            for (unsigned j = 0; j < this->m_lhs.cols(); ++j) {
-                sum +=  this->m_lhs(row, j) * this->m_rhs(j, col);
+            for (unsigned j = 0; j < m_lhs.cols(); ++j) {
+                sum +=  m_lhs(row, j) * m_rhs(j, col);
             }
 
             return sum;
@@ -309,67 +239,67 @@ public:
 
     unsigned rows() const
     {
-        return this->m_lhs.rows();
+        return m_lhs.rows();
     }
 
     unsigned cols() const
     {
-        return this->m_rhs.cols();
+        return m_rhs.cols();
+    }
+
+    bool sourceOk(const Matrix& destMat)
+    {
+        if (!const_cast<LHS&>(m_lhs).sourceOk(destMat)
+                || !const_cast<RHS&>(m_rhs).sourceOk(destMat)) {
+            cache();
+        }
+
+        return true;
     }
 
     unsigned evalCost() const
     {        
         return 1;
     }
-};
 
-template <class E>
-class MatExprEWiseMul2 : public virtual MatExpr
-{
-
-public:
-    MatExprEWiseMul2(const E& e) :
-        expr(e) {}
-
-    const E& expr;
+private:
+    const LHS& m_lhs;
+    const RHS& m_rhs;
 
 };
-
 
 
 // Unary expressions
 // Transposition
 template <class E>
-class MatExprTrans : public MatExprBase<false, E>, virtual MatExpr
+struct ExprTrans final : private ExprBase
 {
-
     // For very large matrices,
     // it is more efficient to actually do the transpose,
     // because of how spread the memory access is otherwise.
     // Create a temp and wirte the transpose to it
     // Need to overload cache() to make it optimized
 
-public:
-    MatExprTrans(const E& expr) :
-        MatExprBase<false, E>(expr) {}
+    ExprTrans(const E& expr) :
+        m_expr(expr) {}
 
     real operator()(const unsigned row, const unsigned col) const
     {
         if (this->m_cached) {
-            return this->m_tmp(row, col);
+            return this->m_tmp[row*cols() + col];
         } else {
-            return this->m_lhs(col, row);
+            return m_expr(col, row);
         }
     }
 
     unsigned rows() const
     {
-        return this->m_lhs.cols();
+        return m_expr.cols();
     }
 
     unsigned cols() const
     {
-        return this->m_lhs.rows();
+        return m_expr.rows();
     }
 
     unsigned evalCost() const
@@ -377,122 +307,19 @@ public:
         return 1;
     }
 
-};
-
-
-// Apply
-template<class E, class func, class... args>
-class MatExprApply : public MatExprBase<true, E>, virtual MatExpr
-{
-//    using args_seq = std::index_sequence_for<args...>;
-
-public:
-    MatExprApply(const E& expr, func f, const args&... a) :
-        MatExprBase<true, E>(expr),
-        m_func(f),
-        m_args(const_cast<args&>(a)...) {}
-
-    real operator()(const unsigned row, const unsigned col) const
+    bool sourceOk(const Matrix& destMat)
     {
-        if (this->m_cached) {
-            return this->m_tmp(row, col);
-        } else {
-
-            if constexpr (sizeof... (args) == 0) {
-
-                return m_func(this->m_lhs(row, col));
-            } else {
-
-                return apply(this->m_lhs(row, col), std::index_sequence_for<args...>{});
-            }
+        if (!const_cast<E&>(m_expr).sourceOk(destMat)) {
+            cache();
         }
-    }
 
-    template<class T, T... Is>
-    auto apply(real val, std::integer_sequence<T, Is...>) const
-    {
-        return m_func(val, std::get<Is>(m_args)...);
-    }
-
-    unsigned rows() const
-    {
-        return this->m_lhs.rows();
-    }
-
-    unsigned cols() const
-    {
-        return this->m_lhs.cols();
-    }
-
-    unsigned evalCost() const
-    {
-        // No additional cost
-        return 1;
+        return true;
     }
 
 private:
-    func m_func;
-    std::tuple<args&...> m_args;
+    const E& m_expr;
 
 };
-
-
-// Zip
-template<class E1, class E2, class func, class... args>
-class MatExprZip : public MatExprBase<true, E1, E2>, virtual MatExpr
-{
-//    using args_seq = std::index_sequence_for<args...>;
-
-public:
-    MatExprZip(const E1& lhs, const E2& rhs, func f, const args&... a) :
-        MatExprBase<true, E1, E2>(lhs, rhs),
-        m_func(f),
-        m_args(const_cast<args&>(a)...) {}
-
-    real operator()(const unsigned row, const unsigned col) const
-    {
-        if (this->m_cached) {
-            return this->m_tmp(row, col);
-        } else {
-
-            if constexpr (sizeof... (args) == 0) {
-
-                return m_func(this->m_lhs(row, col), this->m_rhs(row, col));
-            } else {
-
-                return apply(this->m_lhs(row, col), this->m_rhs(row, col), std::index_sequence_for<args...>{});
-            }
-        }
-    }
-
-    template<class T, T... Is>
-    auto apply(real a, real b, std::integer_sequence<T, Is...>) const
-    {
-        return m_func(a, b, std::get<Is>(m_args)...);
-    }
-
-    unsigned rows() const
-    {
-        return this->m_lhs.rows();
-    }
-
-    unsigned cols() const
-    {
-        return this->m_lhs.cols();
-    }
-
-    unsigned evalCost() const
-    {
-        // No additional cost
-        return 1;
-    }
-
-private:
-    func m_func;
-    std::tuple<args&...> m_args;
-
-};
-
 
 
 // Is evalCost the cost of evaluating the whole expression or just one element?
@@ -568,109 +395,106 @@ private:
 
 // Operators
 // Addition
-template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
-auto operator+(const E1& lhs, const E2& rhs)
+template <Expr LHS, Expr RHS>
+auto operator+(const LHS& lhs, const RHS& rhs)
 {
     assert(lhs.rows() == rhs.rows());
     assert(lhs.cols() == rhs.cols());
-    return MatExprAdd<E1, E2>(lhs, rhs);
+    return ExprAdd<LHS, RHS>(lhs, rhs);
 }
 
-template <class E1> requires(is_expr<E1>)
-auto operator+(const E1& lhs, const real& rhs)
+template <Expr LHS>
+auto operator+(const LHS& lhs, const real& rhs)
 {
-    return MatExprAdd<E1, real>(lhs, rhs);
+    return ExprAdd<LHS, real>(lhs, rhs);
 }
 
-template <class E2> requires(is_expr<E2>)
-auto operator+(const real& lhs, const E2& rhs)
+template <Expr RHS>
+auto operator+(const real& lhs, const RHS& rhs)
 {
-    return MatExprAdd<real, E2>(lhs, rhs);
+    return ExprAdd<real, RHS>(lhs, rhs);
 }
 
 
 // Subtraction
-template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
-auto operator-(const E1& lhs, const E2& rhs)
+template <Expr LHS, Expr RHS>
+auto operator-(const LHS& lhs, const RHS& rhs)
 {
     assert(lhs.rows() == rhs.rows());
     assert(lhs.cols() == rhs.cols());
-    return MatExprSub<E1, E2>(lhs, rhs);
+    return ExprSub<LHS, RHS>(lhs, rhs);
 }
 
-template <class E1> requires(is_expr<E1>)
-auto operator-(const E1& lhs, const real& rhs)
+template <Expr LHS>
+auto operator-(const LHS& lhs, const real& rhs)
 {
-    return MatExprSub<E1, real>(lhs, rhs);
+    return ExprSub<LHS, real>(lhs, rhs);
 }
 
-template <class E2> requires(is_expr<E2>)
-auto operator-(const real& lhs, const E2& rhs)
+template <Expr RHS>
+auto operator-(const real& lhs, const RHS& rhs)
 {
-    return MatExprSub<real, E2>(lhs, rhs);
+    return ExprSub<real, RHS>(lhs, rhs);
 }
 
 
 // Division
-template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
-auto operator/(const E1& lhs, const E2& rhs)
+template <Expr LHS, Expr RHS>
+auto operator/(const LHS& lhs, const RHS& rhs)
 {
     assert(lhs.rows() == rhs.rows());
     assert(lhs.cols() == rhs.cols());
-    return MatExprDiv<E1, E2>(lhs, rhs);
+    return ExprDiv<LHS, RHS>(lhs, rhs);
 }
 
-template <class E1> requires(is_expr<E1>)
-auto operator/(const E1& lhs, const real& rhs)
+template <Expr LHS>
+auto operator/(const LHS& lhs, const real& rhs)
 {
-    return MatExprDiv<E1, real>(lhs, rhs);
+    return ExprDiv<LHS, real>(lhs, rhs);
 }
 
-template <class E2> requires(is_expr<E2>)
-auto operator/(const real& lhs, const E2& rhs)
+template <Expr RHS>
+auto operator/(const real& lhs, const RHS& rhs)
 {
-    return MatExprDiv<real, E2>(lhs, rhs);
-}
-
-
-// Matrix multiplication
-template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
-auto operator*(const E1& lhs, const E2& rhs)
-{
-    assert(lhs.cols() == rhs.rows());
-    return MatExprMatMul<E1, E2>(lhs, rhs);
+    return ExprDiv<real, RHS>(lhs, rhs);
 }
 
 
 // Matrix element wise multiplication, mat ** mat
-template <class E1, class E2> requires(is_expr<E1> && is_expr<E2>)
-auto operator*(const E1& lhs, const MatExprEWiseMul2<E2>& rhs)
+template <Expr LHS, Expr RHS>
+auto operator*(const LHS& lhs, const ExprEWiseMulProxy<RHS>& rhs)
 {
     assert(lhs.rows() == rhs.expr.rows());
     assert(lhs.cols() == rhs.expr.cols());
-    return MatExprEWiseMul<E1, E2>(lhs, rhs.expr);
+    return ExprEWiseMul<LHS, RHS>(lhs, rhs.expr);
 }
 
-template <class E2> requires(is_expr<E2>)
-auto operator*(const E2& rhs)
+template <Expr RHS>
+auto operator*(const RHS& rhs)
 {
-    return MatExprEWiseMul2<E2>(rhs);
+    return ExprEWiseMulProxy<RHS>(rhs);
 }
 
-
-// Matrix/Numeric multiplication
-template <class E1> requires(is_expr<E1>)
-auto operator*(const E1& lhs, const real& rhs)
+template <Expr LHS>
+auto operator*(const LHS& lhs, const real& rhs)
 {
-    return MatExprEWiseMul<E1, real>(lhs, rhs);
+    return ExprEWiseMul<LHS, real>(lhs, rhs);
 }
 
-template <class E2> requires(is_expr<E2>)
-auto operator*(const real& lhs, const E2& rhs)
+template <Expr RHS>
+auto operator*(const real& lhs, const RHS& rhs)
 {
-    return MatExprEWiseMul<real, E2>(lhs, rhs);
+    return ExprEWiseMul<real, RHS>(lhs, rhs);
 }
 
+
+// Matrix multiplication
+template <Expr LHS, Expr RHS>
+auto operator*(const LHS& lhs, const RHS& rhs)
+{
+    assert(lhs.cols() == rhs.rows());
+    return ExprMatMul<LHS, RHS>(lhs, rhs);
+}
 
 
 

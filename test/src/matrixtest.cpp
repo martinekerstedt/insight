@@ -268,6 +268,21 @@ TEST(MatrixMatrixOperators, Addition)
     EXPECT_TRUE(equal_matricies(expected_mat, (mat1 + mat2)));
 }
 
+TEST(MatrixMatrixOperators, AdditionDestAsSrc)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+
+    Matrix expected_mat(4, 4, {30.7459, -26.7233, 9.8444, 0.0000,
+                               -64.2871, 38.4847, 86.0372, -71.0332,
+                               -43.4291, -69.1745, 51.8478, 172.1384,
+                               -70.8607, 2.9749, 25.5225, 14.0093});
+
+    mat1 = mat1 + mat2;
+
+    EXPECT_TRUE(equal_matricies(expected_mat, mat1));
+}
+
 TEST(MatrixMatrixOperators, Subtraction)
 {
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
@@ -297,6 +312,26 @@ TEST(MatrixMatrixOperators, Multiplication)
     }
 
     EXPECT_TRUE(equal_matricies(expected_mat, (mat1 * mat2)));
+}
+
+TEST(MatrixMatrixOperators, MultiplicationDestAsSrc)
+{
+    Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
+    Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
+
+    Matrix expected_mat(4, 4, 0.0);
+
+    for (unsigned i = 0; i < MAT_1_ROWS; ++i) {
+        for (unsigned j = 0; j < MAT_1_COLS; ++j) {
+            for (unsigned k = 0; k < MAT_1_COLS; ++k) {
+                expected_mat(i, j) += mat1(i, k) * mat2(k, j);
+            }
+        }
+    }
+
+    mat1 = mat1 * mat2;
+
+    EXPECT_TRUE(equal_matricies(expected_mat, mat1));
 }
 
 TEST(MatrixMatrixOperators, CumulativeAddition)

@@ -154,22 +154,12 @@ Matrix& Matrix::operator/=(const real& rhs)
 }
 
 // Matrix operations
-MatExprTrans<Matrix> Matrix::trans() const
+ExprTrans<Matrix> Matrix::trans() const
 {
-    return MatExprTrans<Matrix>(*const_cast<Matrix*>(this));
+    return ExprTrans<Matrix>(*const_cast<Matrix*>(this));
 }
 
 // Access
-//real* Matrix::data()
-//{
-//    return m_vec.data();
-//}
-
-//const real* Matrix::data() const
-//{
-//    return m_vec.data();
-//}
-
 std::vector<real>& Matrix::vec()
 {
     return m_vec;
@@ -223,7 +213,7 @@ real& Matrix::operator()(const unsigned& idx)
     return m_vec[idx];
 }
 
-const real& Matrix::operator()(const unsigned& row, const unsigned& col) const
+real Matrix::operator()(const unsigned row, const unsigned col) const
 {
     if (row >= m_rows) {
         THROW_ERROR("Index out of bounds.\n"
@@ -240,7 +230,7 @@ const real& Matrix::operator()(const unsigned& row, const unsigned& col) const
     return m_vec[row*m_cols + col];
 }
 
-const real& Matrix::operator()(const unsigned& idx) const
+real Matrix::operator()(const unsigned& idx) const
 {
     if (idx >= m_rows*m_cols) {
         THROW_ERROR("Index out of bounds.\n"
@@ -249,6 +239,13 @@ const real& Matrix::operator()(const unsigned& idx) const
     }
 
     return m_vec[idx];
+}
+
+VectorView Matrix::row(const unsigned& row) const
+{
+    VectorView vecView(this, &m_vec[row*m_cols], m_cols);
+
+    return vecView;
 }
 
 //Vector Matrix::row(const unsigned& row) const
@@ -265,13 +262,6 @@ const real& Matrix::operator()(const unsigned& idx) const
 
 //    return vec;
 //}
-
-VectorView Matrix::row(const unsigned& row) const
-{
-    VectorView vecView(this, &m_vec[row*m_cols], m_cols);
-
-    return vecView;
-}
 
 //Vector Matrix::col(const unsigned& col) const
 //{
