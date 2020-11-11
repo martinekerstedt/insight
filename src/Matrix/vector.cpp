@@ -1,4 +1,4 @@
-#include <NeuralNet/vector.h>
+#include <Matrix/vector.h>
 
 Vector::Vector() :
     Matrix()

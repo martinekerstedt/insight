@@ -1,5 +1,5 @@
-#ifndef MATEXPR_BASE_H
-#define MATEXPR_BASE_H
+#ifndef EXPR_BASE_H
+#define EXPR_BASE_H
 
 #include <Common/types.h>
 #include <tuple>
@@ -103,7 +103,7 @@ struct ExprTrans;
 
 
 
-#endif // MATEXPR_BASE_H
+#endif // EXPR_BASE_H
 
 
 

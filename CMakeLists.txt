@@ -72,9 +72,9 @@ add_library(${PROJECT_NAME}
         src/insight.cpp
         src/NeuralNet/neuralnet.cpp
         src/NeuralNet/functions.cpp
-        src/NeuralNet/matrix.cpp
-        src/NeuralNet/vector.cpp
-        src/NeuralNet/vectorview.cpp
+        src/Matrix/matrix.cpp
+        src/Matrix/vector.cpp
+        src/Matrix/vectorview.cpp
 )
 
 

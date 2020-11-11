@@ -3,7 +3,7 @@
 
 #include <Common/types.h>
 #include <Common/parallelfor.h>
-#include <NeuralNet/matexpr_base.h>
+#include <Matrix/expr_base.h>
 #include <vector>
 
 
@@ -184,7 +184,7 @@ protected:
 // Include the implementation of the Matrix Expressions
 // All template expression will now be in the same unit
 // And only matrix.h has to be included by the client
-#include <NeuralNet/matexpr.h>
+#include <Matrix/expr.h>
 
 
 #endif // MATRIX_H

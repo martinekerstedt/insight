@@ -1,7 +1,7 @@
 #ifndef VECTORVIEW_H
 #define VECTORVIEW_H
 
-#include <NeuralNet/matexpr_base.h>
+#include <Matrix/expr_base.h>
 
 class Vector;
 

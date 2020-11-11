@@ -1,7 +1,7 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#include <NeuralNet/matrix.h>
+#include <Matrix/matrix.h>
 
 class Vector final : public Matrix
 {

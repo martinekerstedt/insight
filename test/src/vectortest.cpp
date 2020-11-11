@@ -1,6 +1,5 @@
 ﻿#include "gtest/gtest.h"
-#include <NeuralNet/vector.h>
-//#include <NeuralNet/matrix.h>
+#include <Matrix/vector.h>
 
 #define MAT_1_ROWS  4
 #define MAT_1_COLS  MAT_1_ROWS

@@ -1,6 +1,6 @@
-#include <NeuralNet/matrix.h>
-#include <NeuralNet/vector.h>
-#include <NeuralNet/vectorview.h>
+#include <Matrix/matrix.h>
+#include <Matrix/vector.h>
+#include <Matrix/vectorview.h>
 #include <sstream>
 #include <iomanip>
 

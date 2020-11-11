@@ -1,5 +1,5 @@
 #include <benchmark/benchmark.h>
-#include <NeuralNet/matrix.h>
+#include <Matrix/matrix.h>
 
 //
 // https://github.com/google/benchmark/issues/242

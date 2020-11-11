@@ -1,5 +1,5 @@
-#include <NeuralNet/vectorview.h>
-#include <NeuralNet/vector.h>
+#include <Matrix/vectorview.h>
+#include <Matrix/vector.h>
 
 VectorView::VectorView() :
     m_src(nullptr),

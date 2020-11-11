@@ -1,7 +1,7 @@
-﻿#ifndef MATEXPR_H
-#define MATEXPR_H
+﻿#ifndef EXPR_H
+#define EXPR_H
 
-#include <NeuralNet/matexpr_base.h>
+#include <Matrix/expr_base.h>
 #include <cassert>
 
 
@@ -499,7 +499,7 @@ auto operator*(const LHS& lhs, const RHS& rhs)
 
 
 
-#endif // MATEXPR_H
+#endif // EXPR_H
 
 
 
