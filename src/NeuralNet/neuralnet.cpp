@@ -23,7 +23,7 @@ Model::Model(const std::initializer_list<size_t>& list) :
 }
 
 Model::Model(const std::vector<size_t>& sizeVec) :
-    m_stateAccess(m_state)
+    m_context(m_config, m_state)
 {
     if (sizeVec.size() < 2) {
         THROW_ERROR("Invalid net size: "
@@ -40,11 +40,9 @@ Model::Model(const std::vector<size_t>& sizeVec) :
     }
 
     // Config
-    m_state.config.sizeVec = sizeVec;
-    m_state.config.batchSize = 1;
-    m_state.config.nEpochs = 1;
-    m_state.config.printInterval = 1;
-    m_state.config.softMax = false;
+    m_config.sizeVec = sizeVec;
+    m_config.batchSize = 1;
+    m_config.printInterval = 1;
 
 
     // Step
@@ -80,18 +78,18 @@ Model::Model(const std::vector<size_t>& sizeVec) :
 
         // Add layer
         m_state.layers.push_back(State::Layer(sizeVec[i], sizeVec[i + 1]));
-        State::ActivFunc activFunc;
-        activFunc.type = State::ActivFuncType::SIGMOID;
+        Config::ActivFunc activFunc;
+        activFunc.type = Config::ActivFuncType::SIGMOID;
         activFunc.ptr = activation_func_sigmoid;
         activFunc.derivPtr = activation_func_sigmoid_deriv;
         ActivationFunction::SIGMOID sig_cfg;
         activFunc.cfg.sigmoid = sig_cfg;
-        m_state.layerActivFunc.push_back(activFunc);
+        m_config.layerActivFunc.push_back(activFunc);
     }
 
 
     // Init weights and biases
-    m_state.initFunc.ptr(m_stateAccess);
+    m_config.initFunc.ptr(m_context);
 }
 
 void Model::propergate()
@@ -102,26 +100,22 @@ void Model::propergate()
     // Propergate input layer
 //    m_state.layers[0].weightedSum = (m_state.layers[0].weights * *m_state.input) + m_state.layers[0].bias;
     m_state.layers[0].weightedSum = (m_state.layers[0].weights * m_state.input) + m_state.layers[0].bias;
-    m_state.layers[0].output = Matrix::apply(m_state.layers[0].weightedSum, m_state.layerActivFunc[0].ptr, m_stateAccess);
+    m_state.layers[0].output = Matrix::apply(m_state.layers[0].weightedSum, m_config.layerActivFunc[0].ptr, m_context);
 
     for (unsigned i = 1; i < m_state.layers.size(); ++i) {
         // Propergate hidden and output layers
         m_state.layers[i].weightedSum = (m_state.layers[i].weights * m_state.layers[i - 1].output) + m_state.layers[i].bias;
-        m_state.layers[i].output = Matrix::apply(m_state.layers[i].weightedSum, m_state.layerActivFunc[i].ptr, m_stateAccess);
-    }
-
-    if (m_state.config.softMax) {
-        softMax(m_state.layers.back().output);
+        m_state.layers[i].output = Matrix::apply(m_state.layers[i].weightedSum, m_config.layerActivFunc[i].ptr, m_context);
     }
 }
 
 const Vector& Model::propergate(const Vector& input)
 {
-    if (input.size() != m_state.config.sizeVec[0]) {
+    if (input.size() != m_config.sizeVec[0]) {
         THROW_ERROR("Invalid input size: "
                     << input.size()
                     << ", Expected: "
-                    << m_state.config.sizeVec[0]);
+                    << m_config.sizeVec[0]);
     }
 
     m_state.input = &input;
@@ -141,30 +135,31 @@ void Model::train(const Matrix& input, const Matrix& target)
                     << target.rows());
     }
 
-    if (input.cols() != m_state.config.sizeVec.front()) {
+    if (input.cols() != m_config.sizeVec.front()) {
         THROW_ERROR("Number of cols in input matrix must equal number of input neurons.\n"
                     << input.cols()
                     << " != "
-                    << m_state.config.sizeVec.front());
+                    << m_config.sizeVec.front());
     }
 
-    if (target.cols() != m_state.config.sizeVec.back()) {
+    if (target.cols() != m_config.sizeVec.back()) {
         THROW_ERROR("Number of cols in target matrix must equal number of output neurons.\n"
                     << input.cols()
                     << " != "
-                    << m_state.config.sizeVec.front());
+                    << m_config.sizeVec.front());
     }
 
     // Number of training samples
     size_t nSamples = input.rows();
+    unsigned nEpochs = 2;
 
     // Number of epochs
-    for (size_t epoch = 0; epoch < m_state.config.nEpochs; ++epoch) {
+    for (size_t epoch = 0; epoch < nEpochs; ++epoch) {
 
 
         // Change print interval at last epoch
-        if (epoch == (m_state.config.nEpochs - 1)) {
-            m_state.config.printInterval = 500;
+        if (epoch == (nEpochs - 1)) {
+            m_config.printInterval = 500;
         }
 
 
@@ -174,7 +169,7 @@ void Model::train(const Matrix& input, const Matrix& target)
 
 
             // Training batch
-            size_t batchMax = std::min(inputIdx + m_state.config.batchSize, nSamples);
+            size_t batchMax = std::min(inputIdx + m_config.batchSize, nSamples);
 
             // Reset averages
             m_state.avg_error.fill(0.0);
@@ -191,7 +186,7 @@ void Model::train(const Matrix& input, const Matrix& target)
 
 
                 // Calc error vector, average over batch
-                m_state.error = Matrix::zip(m_state.layers.back().output, target.row(batchIdx), m_state.costFunc.ptr, m_stateAccess);
+                m_state.error = Matrix::zip(m_state.layers.back().output, target.row(batchIdx), m_config.costFunc.ptr, m_context);
 
                 // Save error to get average
                 // Note: avg_error.size() == output.size() == target.size()
@@ -201,7 +196,7 @@ void Model::train(const Matrix& input, const Matrix& target)
                 m_state.avg_input += input.row(batchIdx);
 
                 // Print
-                if ((batchIdx % m_state.config.printInterval) == 0) {
+                if ((batchIdx % m_config.printInterval) == 0) {
                     printState(input.row(batchIdx), target.row(batchIdx), m_state.error, batchIdx);
                 }
             }
@@ -214,11 +209,11 @@ void Model::train(const Matrix& input, const Matrix& target)
 
 
             // Optimize on avg_error
-            m_state.optFunc.ptr(m_stateAccess);
+            m_config.optFunc.ptr(m_context);
 
 
             // Update index
-            inputIdx += m_state.config.batchSize;
+            inputIdx += m_config.batchSize;
         }
     }
 }
@@ -233,18 +228,18 @@ void Model::train(const Matrix& input, const Matrix& target, unsigned nEpochs)
                     << target.rows());
     }
 
-    if (input.cols() != m_state.config.sizeVec.front()) {
+    if (input.cols() != m_config.sizeVec.front()) {
         THROW_ERROR("Number of cols in input matrix must equal number of input neurons.\n"
                     << input.cols()
                     << " != "
-                    << m_state.config.sizeVec.front());
+                    << m_config.sizeVec.front());
     }
 
-    if (target.cols() != m_state.config.sizeVec.back()) {
+    if (target.cols() != m_config.sizeVec.back()) {
         THROW_ERROR("Number of cols in target matrix must equal number of output neurons.\n"
                     << input.cols()
                     << " != "
-                    << m_state.config.sizeVec.front());
+                    << m_config.sizeVec.front());
     }
 
     // Number of training samples
@@ -259,7 +254,7 @@ void Model::train(const Matrix& input, const Matrix& target, unsigned nEpochs)
 
         // Change print interval at last epoch
         if (epoch >= (nEpochs - 1)) {
-            m_state.config.printInterval = 500;
+            m_config.printInterval = 500;
         }
 
         for (unsigned i = 0; i < nSamples; ++i) {
@@ -271,19 +266,19 @@ void Model::train(const Matrix& input, const Matrix& target, unsigned nEpochs)
     }
 }
 
-void Model::softMax(Vector& output)
-{
-    real sum = 0;
+//void Model::softMax(Vector& output)
+//{
+//    real sum = 0;
 
-    for (size_t i = 0; i < output.size(); ++i) {
-        output(i) = std::exp(output(i));
-        sum += output(i);
-    }
+//    for (size_t i = 0; i < output.size(); ++i) {
+//        output(i) = std::exp(output(i));
+//        sum += output(i);
+//    }
 
-    for (size_t i = 0; i < output.size(); ++i) {
-        output(i) /= sum;
-    }
-}
+//    for (size_t i = 0; i < output.size(); ++i) {
+//        output(i) /= sum;
+//    }
+//}
 
 const Vector& Model::output()
 {
@@ -301,8 +296,8 @@ void Model::save(std::string dir)
     // Network size
     netStr << "size:\n";
 
-    for (unsigned i = 0; i < m_state.config.sizeVec.size(); ++i) {
-        netStr << m_state.config.sizeVec[i] << "\n";
+    for (unsigned i = 0; i < m_config.sizeVec.size(); ++i) {
+        netStr << m_config.sizeVec[i] << "\n";
     }
 
     // Loop layers
@@ -345,7 +340,7 @@ void Model::printState(Vector input, Vector target, Vector error, size_t batchId
 
 
     // Learning rate
-    ss << "lrt: [ " << std::setprecision(4) << m_state.optFunc.cfg.backprop.learningRate << std::setprecision(2) << " ]\n";
+    ss << "lrt: [ " << std::setprecision(4) << m_config.optFunc.cfg.backprop.learningRate << std::setprecision(2) << " ]\n";
 
 
 
@@ -437,11 +432,11 @@ void Model::printState(Vector input, Vector target, Vector error, size_t batchId
 
 void Model::setInput(const Vector& input)
 {
-    if (input.size() != m_state.config.sizeVec.front()) {
+    if (input.size() != m_config.sizeVec.front()) {
         THROW_ERROR("Invalid input size: "
                     << input.size()
                     << ", Expected: "
-                    << m_state.config.sizeVec.front());
+                    << m_config.sizeVec.front());
     }
 
     m_state.input = &input;
@@ -449,11 +444,11 @@ void Model::setInput(const Vector& input)
 
 void Model::setTarget(const Vector& target)
 {
-    if (target.size() != m_state.config.sizeVec.back()) {
+    if (target.size() != m_config.sizeVec.back()) {
         THROW_ERROR("Invalid target size: "
                     << target.size()
                     << ", Expected: "
-                    << m_state.config.sizeVec.back());
+                    << m_config.sizeVec.back());
     }
 
     m_state.target = &target;
@@ -468,37 +463,37 @@ void Model::step()
     propergate();
 
     // Optimize if a batch is done
-    if (m_state.config.batchSize == 1) {
+    if (m_config.batchSize == 1) {
 
         // Calc error
         m_state.error = Matrix::zip(m_state.layers.back().output, m_state.target,
-                                    m_state.costFunc.ptr, m_stateAccess);
+                                    m_config.costFunc.ptr, m_context);
 
         m_state.avg_input = m_state.input;
 
         // Optimize
-        m_state.optFunc.ptr(m_stateAccess);
+        m_config.optFunc.ptr(m_context);
 
     } else {
 
         // Save error and input to get average later
         m_state.error += Matrix::zip(m_state.layers.back().output, m_state.target,
-                                         m_state.costFunc.ptr, m_stateAccess);
+                                         m_config.costFunc.ptr, m_context);
 
         m_state.avg_input += m_state.input;
 
         // Optimize if a batch is done
-        if ((m_state.step % m_state.config.batchSize) == 0) {
+        if ((m_state.step % m_config.batchSize) == 0) {
 
             // Averages
-            m_state.error /= m_state.config.batchSize;
-            m_state.avg_input /= m_state.config.batchSize;
+            m_state.error /= m_config.batchSize;
+            m_state.avg_input /= m_config.batchSize;
 
             // Set input to optimize on
 //            m_state.input = &m_state.avg_input;
 
             // Optimize
-            m_state.optFunc.ptr(m_stateAccess);
+            m_config.optFunc.ptr(m_context);
 
             // Reset averages
             m_state.error.fill(0.0);
@@ -507,125 +502,125 @@ void Model::step()
     }
 
     // Print
-    if ((m_state.step % m_state.config.printInterval) == 1) {
+    if ((m_state.step % m_config.printInterval) == 1) {
         printState(m_state.avg_input, m_state.target, m_state.error, m_state.step);
     }
 }
 
-State::Config &Model::config()
+Config &Model::config()
 {
-    return m_state.config;
+    return m_config;
 }
 
 // Initialization functions
 void Model::setInitializationFunction(InitializationFunction::ALL_ZERO init_func)
 {
-    m_state.initFunc.cfg.all_zero = init_func;
-    m_state.initFunc.type = State::InitFuncType::ALL_ZERO;
-    m_state.initFunc.ptr = init_func_random_normal;
+    m_config.initFunc.cfg.all_zero = init_func;
+    m_config.initFunc.type = Config::InitFuncType::ALL_ZERO;
+    m_config.initFunc.ptr = init_func_random_normal;
 }
 
 void Model::setInitializationFunction(InitializationFunction::RANDOM_NORMAL init_func)
 {
-    m_state.initFunc.cfg.random = init_func;
-    m_state.initFunc.type = State::InitFuncType::RANDOM;
-    m_state.initFunc.ptr = init_func_random_normal;
+    m_config.initFunc.cfg.random = init_func;
+    m_config.initFunc.type = Config::InitFuncType::RANDOM;
+    m_config.initFunc.ptr = init_func_random_normal;
 }
 
 void Model::setInitializationFunction(InitializationFunction::RANDOM_UNIFORM init_func)
 {
-    m_state.initFunc.cfg.uniform = init_func;
-    m_state.initFunc.type = State::InitFuncType::UNIFORM;
-    m_state.initFunc.ptr = init_func_random_uniform;
+    m_config.initFunc.cfg.uniform = init_func;
+    m_config.initFunc.type = Config::InitFuncType::UNIFORM;
+    m_config.initFunc.ptr = init_func_random_uniform;
 }
 
-void Model::setInitializationFunction(void (*initFunc)(StateAccess&))
+void Model::setInitializationFunction(void (*initFunc)(Context&))
 {
-    m_state.initFunc.type = State::InitFuncType::CUSTOM;
-    m_state.initFunc.ptr = initFunc;
+    m_config.initFunc.type = Config::InitFuncType::CUSTOM;
+    m_config.initFunc.ptr = initFunc;
 }
 
 // Activation functions
 void Model::setActivationFunction(unsigned int layerIdx, ActivationFunction::RELU activ_func)
 {
-    m_state.layerActivFunc[layerIdx].cfg.relu = activ_func;
-    m_state.layerActivFunc[layerIdx].type = State::ActivFuncType::RELU;
-    m_state.layerActivFunc[layerIdx].ptr = activation_func_relu;
-    m_state.layerActivFunc[layerIdx].derivPtr = activation_func_relu_deriv;
+    m_config.layerActivFunc[layerIdx].cfg.relu = activ_func;
+    m_config.layerActivFunc[layerIdx].type = Config::ActivFuncType::RELU;
+    m_config.layerActivFunc[layerIdx].ptr = activation_func_relu;
+    m_config.layerActivFunc[layerIdx].derivPtr = activation_func_relu_deriv;
 }
 
 void Model::setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func)
 {
-    m_state.layerActivFunc[layerIdx].cfg.sigmoid = activ_func;
-    m_state.layerActivFunc[layerIdx].type = State::ActivFuncType::SIGMOID;
-    m_state.layerActivFunc[layerIdx].ptr = activation_func_sigmoid;
-    m_state.layerActivFunc[layerIdx].derivPtr = activation_func_sigmoid_deriv;
+    m_config.layerActivFunc[layerIdx].cfg.sigmoid = activ_func;
+    m_config.layerActivFunc[layerIdx].type = Config::ActivFuncType::SIGMOID;
+    m_config.layerActivFunc[layerIdx].ptr = activation_func_sigmoid;
+    m_config.layerActivFunc[layerIdx].derivPtr = activation_func_sigmoid_deriv;
 }
 
 void Model::setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func)
 {
-    m_state.layerActivFunc[layerIdx].cfg.tanh = activ_func;
-    m_state.layerActivFunc[layerIdx].type = State::ActivFuncType::TANH;
-    m_state.layerActivFunc[layerIdx].ptr = activation_func_tanh;
-    m_state.layerActivFunc[layerIdx].derivPtr = activation_func_tanh_deriv;
+    m_config.layerActivFunc[layerIdx].cfg.tanh = activ_func;
+    m_config.layerActivFunc[layerIdx].type = Config::ActivFuncType::TANH;
+    m_config.layerActivFunc[layerIdx].ptr = activation_func_tanh;
+    m_config.layerActivFunc[layerIdx].derivPtr = activation_func_tanh_deriv;
 }
 
 void Model::setActivationFunction(unsigned int layerIdx,
-                                      real (*activFunc)(real, StateAccess&),
-                                      real (*activFuncDeriv)(real, StateAccess&))
+                                      real (*activFunc)(real, Context&),
+                                      real (*activFuncDeriv)(real, Context&))
 {
-    m_state.layerActivFunc[layerIdx].type = State::ActivFuncType::CUSTOM;
-    m_state.layerActivFunc[layerIdx].ptr = activFunc;
-    m_state.layerActivFunc[layerIdx].derivPtr = activFuncDeriv;
+    m_config.layerActivFunc[layerIdx].type = Config::ActivFuncType::CUSTOM;
+    m_config.layerActivFunc[layerIdx].ptr = activFunc;
+    m_config.layerActivFunc[layerIdx].derivPtr = activFuncDeriv;
 }
 
 // Cost functions
-void Model::setCostFunction(real (*costFunc)(real output, real target, StateAccess& net))
+void Model::setCostFunction(real (*costFunc)(real output, real target, Context& net))
 {
-    m_state.costFunc.type = State::CostFuncType::CUSTOM;
-    m_state.costFunc.ptr = costFunc;
+    m_config.costFunc.type = Config::CostFuncType::CUSTOM;
+    m_config.costFunc.ptr = costFunc;
 }
 
 void Model::setCostFunction(CostFunction::DIFFERENCE cost_func)
 {
-    m_state.costFunc.cfg.diff = cost_func;
-    m_state.costFunc.type = State::CostFuncType::DIFFERENCE;
-    m_state.costFunc.ptr = cost_func_difference;
+    m_config.costFunc.cfg.diff = cost_func;
+    m_config.costFunc.type = Config::CostFuncType::DIFFERENCE;
+    m_config.costFunc.ptr = cost_func_difference;
 }
 
 void Model::setCostFunction(CostFunction::SQUARE_DIFFERENCE cost_func)
 {
-    m_state.costFunc.cfg.sq_diff = cost_func;
-    m_state.costFunc.type = State::CostFuncType::SQUARE_DIFFERENCE;
-    m_state.costFunc.ptr = cost_func_square_difference;
+    m_config.costFunc.cfg.sq_diff = cost_func;
+    m_config.costFunc.type = Config::CostFuncType::SQUARE_DIFFERENCE;
+    m_config.costFunc.ptr = cost_func_square_difference;
 }
 
 void Model::setCostFunction(CostFunction::CROSS_ENTROPY cost_func)
 {
-    m_state.costFunc.cfg.x_ntrp = cost_func;
-    m_state.costFunc.type = State::CostFuncType::CROSS_ENTROPY;
-    m_state.costFunc.ptr = cost_func_cross_entropy;
+    m_config.costFunc.cfg.x_ntrp = cost_func;
+    m_config.costFunc.type = Config::CostFuncType::CROSS_ENTROPY;
+    m_config.costFunc.ptr = cost_func_cross_entropy;
 }
 
 // Optimize functions
 void Model::setOptimizeFunction(OptimizeFunction::TEST opt_func)
 {
-    m_state.optFunc.cfg.test = opt_func;
-    m_state.optFunc.type = State::OptFuncType::TEST;
-    m_state.optFunc.ptr = optimize_func_backprop;
+    m_config.optFunc.cfg.test = opt_func;
+    m_config.optFunc.type = Config::OptFuncType::TEST;
+    m_config.optFunc.ptr = optimize_func_backprop;
 }
 
 void Model::setOptimizeFunction(OptimizeFunction::BACKPROP opt_func)
 {
-    m_state.optFunc.cfg.backprop = opt_func;
-    m_state.optFunc.type = State::OptFuncType::BACKPROP;
-    m_state.optFunc.ptr = optimize_func_backprop;
+    m_config.optFunc.cfg.backprop = opt_func;
+    m_config.optFunc.type = Config::OptFuncType::BACKPROP;
+    m_config.optFunc.ptr = optimize_func_backprop;
 }
 
-void Model::setOptimizeFunction(void (*optFunc)(StateAccess&))
+void Model::setOptimizeFunction(void (*optFunc)(Context&))
 {
-    m_state.optFunc.type = State::OptFuncType::CUSTOM;
-    m_state.optFunc.ptr = optFunc;
+    m_config.optFunc.type = Config::OptFuncType::CUSTOM;
+    m_config.optFunc.ptr = optFunc;
 }
 
 

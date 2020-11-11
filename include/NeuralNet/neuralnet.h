@@ -6,7 +6,7 @@
 //#include <NeuralNet/vector.h>
 
 //#include <NeuralNet/state.h>
-#include <NeuralNet/stateaccess.h>
+#include <NeuralNet/context.h>
 
 // Introduce step? Will make monitoring easier
 // One step is:
@@ -63,7 +63,7 @@ public:
     const Vector& propergate(const Vector& input);
     void train(const Matrix& input, const Matrix& target);
     void train(const Matrix& input, const Matrix& target, unsigned nEpochs);
-    void softMax(Vector& vec);
+//    void softMax(Vector& vec);
     const Vector& output();
     void save(std::string dir);
     void printState(Vector input, Vector target, Vector error, size_t batchIdx);
@@ -72,32 +72,33 @@ public:
     void setTarget(const Vector& target);
     void step();
 
-    State::Config& config();
+    Config& config();
 
-    void setInitializationFunction(void (*initFunc)(StateAccess&));
+    void setInitializationFunction(void (*initFunc)(Context&));
     void setInitializationFunction(InitializationFunction::ALL_ZERO init_func);
     void setInitializationFunction(InitializationFunction::RANDOM_NORMAL init_func);
     void setInitializationFunction(InitializationFunction::RANDOM_UNIFORM init_func);
 
-    void setCostFunction(real (*costFunc)(real, real, StateAccess&));
+    void setCostFunction(real (*costFunc)(real, real, Context&));
     void setCostFunction(CostFunction::DIFFERENCE cost_func);
     void setCostFunction(CostFunction::CROSS_ENTROPY cost_func);
     void setCostFunction(CostFunction::SQUARE_DIFFERENCE cost_func);
 
     void setActivationFunction(unsigned int layerIdx,
-                               real (*activFunc)(real, StateAccess&),
-                               real (*activFuncDeriv)(real, StateAccess&));
+                               real (*activFunc)(real, Context&),
+                               real (*activFuncDeriv)(real, Context&));
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::RELU activ_func);
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func);
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func);
 
-    void setOptimizeFunction(void (*optFunc)(StateAccess&));
+    void setOptimizeFunction(void (*optFunc)(Context&));
     void setOptimizeFunction(OptimizeFunction::TEST opt_func);
     void setOptimizeFunction(OptimizeFunction::BACKPROP opt_func);
 
 private:
+    Config m_config;
     State m_state;
-    StateAccess m_stateAccess;   
+    Context m_context;
 
 };
 

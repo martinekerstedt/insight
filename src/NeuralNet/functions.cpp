@@ -8,9 +8,8 @@ namespace NeuralNet
 
 
 // Initialization functions
-void init_func_random_normal(NeuralNet::StateAccess& net)
+void init_func_random_normal(NeuralNet::Context& net)
 {
-//    InitializationFunction::RANDOM_NORMAL cfg = net.m_state.initFunc.cfg.random;
     InitializationFunction::RANDOM_NORMAL cfg = net.initFuncConfig.random;
 
     std::mt19937 gen;
@@ -45,9 +44,8 @@ void init_func_random_normal(NeuralNet::StateAccess& net)
     }
 }
 
-void init_func_random_uniform(NeuralNet::StateAccess& net)
+void init_func_random_uniform(NeuralNet::Context& net)
 {
-//    InitializationFunction::RANDOM_UNIFORM cfg = net.m_state.initFunc.cfg.uniform;
     InitializationFunction::RANDOM_UNIFORM cfg = net.initFuncConfig.uniform;
 
     std::mt19937 gen;
@@ -66,8 +64,8 @@ void init_func_random_uniform(NeuralNet::StateAccess& net)
 
 
     // Input layer
-    real max = 1.0/std::sqrt(net.config.sizeVec[0]*layers[0].size());
-    real min = -1.0/std::sqrt(net.config.sizeVec[0]*layers[0].size());
+    real max = 1.0/std::sqrt(net.sizeVec[0]*layers[0].size());
+    real min = -1.0/std::sqrt(net.sizeVec[0]*layers[0].size());
 
     std::uniform_real_distribution<> d(min, max);
 
@@ -101,7 +99,7 @@ void init_func_random_uniform(NeuralNet::StateAccess& net)
 }
 
 // Activation functions
-real activation_func_relu(real x, NeuralNet::StateAccess& net)
+real activation_func_relu(real x, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -118,7 +116,7 @@ real activation_func_relu(real x, NeuralNet::StateAccess& net)
     }
 }
 
-real activation_func_sigmoid(real x, NeuralNet::StateAccess& net)
+real activation_func_sigmoid(real x, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -133,7 +131,7 @@ real activation_func_sigmoid(real x, NeuralNet::StateAccess& net)
     }
 }
 
-real activation_func_tanh(real x, NeuralNet::StateAccess& net)
+real activation_func_tanh(real x, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -147,7 +145,7 @@ real activation_func_tanh(real x, NeuralNet::StateAccess& net)
 }
 
 // Activation function derivatives
-real activation_func_relu_deriv(real x, NeuralNet::StateAccess& net)
+real activation_func_relu_deriv(real x, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -164,7 +162,7 @@ real activation_func_relu_deriv(real x, NeuralNet::StateAccess& net)
     }
 }
 
-real activation_func_sigmoid_deriv(real x, NeuralNet::StateAccess& net)
+real activation_func_sigmoid_deriv(real x, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -179,7 +177,7 @@ real activation_func_sigmoid_deriv(real x, NeuralNet::StateAccess& net)
     }
 }
 
-real activation_func_tanh_deriv(real x, NeuralNet::StateAccess& net)
+real activation_func_tanh_deriv(real x, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -187,14 +185,14 @@ real activation_func_tanh_deriv(real x, NeuralNet::StateAccess& net)
 }
 
 // Cost functions
-real cost_func_difference(real output, real target, NeuralNet::StateAccess& net)
+real cost_func_difference(real output, real target, NeuralNet::Context& net)
 {
     (void)net;
 
     return output - target;
 }
 
-real cost_func_square_difference(real output, real target, NeuralNet::StateAccess& net)
+real cost_func_square_difference(real output, real target, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -207,7 +205,7 @@ real cost_func_square_difference(real output, real target, NeuralNet::StateAcces
     }
 }
 
-real cost_func_cross_entropy(real output, real target, NeuralNet::StateAccess& net)
+real cost_func_cross_entropy(real output, real target, NeuralNet::Context& net)
 {
     (void)net;
 
@@ -233,7 +231,7 @@ real cost_func_cross_entropy(real output, real target, NeuralNet::StateAccess& n
 }
 
 // Optimize functions
-void optimize_func_backprop(NeuralNet::StateAccess& net)
+void optimize_func_backprop(NeuralNet::Context& net)
 {
     const OptimizeFunction::BACKPROP& cfg = net.optFuncConfig.backprop;
     std::vector<State::Layer>& layers = net.layers;
@@ -256,8 +254,6 @@ void optimize_func_backprop(NeuralNet::StateAccess& net)
                 * layers[i - 1].output.trans();
     }
 
-//    layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
-//            * net.avg_input.trans();
     layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
             * net.avg_input.trans();
 }
