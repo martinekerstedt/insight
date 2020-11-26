@@ -11,12 +11,41 @@
 #include <random>
 
 
+
+
+//struct SomeFunction
+//{
+
+//};
+
+namespace SomeFunction
+{
+
+struct FuncOne
+{
+    int a;
+    bool b;
+};
+
+struct FuncTwo
+{
+    int c;
+    bool d;
+};
+
+}
+
+
 void my_init(NeuralNet::Context& net)
 {
     std::vector<NeuralNet::State::Layer>& layers = net.layers;
     layers[0].bias(2) = 2;
 
     NeuralNet::State a;
+
+
+    SomeFunction::FuncTwo f1;
+
 
 }
 
@@ -44,9 +73,23 @@ int main()
     net.config().printInterval = 10000;
 
 
-    OptimizeFunction::BACKPROP cfg;
-    cfg.learningRate = 0.08;
-    net.setOptimizeFunction(cfg);
+//    OptimizeFunction::BACKPROP cfg;
+//    cfg.learningRate = 0.08;
+//    net.setOptimizeFunction(cfg);
+
+//    LearningRateFunction::CONSTANT cfg;
+//    cfg.initial = 0.01;
+//    net.setLearningRateFunction(cfg);
+
+//    LearningRateFunction::EXPONETIAL_DECAY cfg;
+//    cfg.initial = 0.1;
+//    cfg.decay_rate = 0.96;
+//    cfg.decay_steps = 10000;
+//    cfg.step = 0;
+//    net.setLearningRateFunction(cfg);
+
+//    LearningRateFunction::LINEAR_DECAY cfg;
+//    net.setLearningRateFunction(cfg);
 
 //    InitializationFunction::RANDOM_UNIFORM cfg2;
 //    net.setInitializationFunction(cfg2);

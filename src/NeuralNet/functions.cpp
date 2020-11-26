@@ -230,15 +230,41 @@ real cost_func_cross_entropy(real output, real target, NeuralNet::Context& net)
     }
 }
 
-// Optimize functions
-void optimize_func_backprop(NeuralNet::Context& net)
+// Learning rate functions
+void learnRate_func_constant(Context& net)
 {
-    const OptimizeFunction::BACKPROP& cfg = net.optFuncConfig.backprop;
+    (void)net;
+    return;
+}
+
+void learnRate_func_linear_decay(Context& net)
+{
+    LearningRateFunction::LINEAR_DECAY cfg = net.learnRateFuncConfig.linear_decay;
+
+    if ((net.step % cfg.decay_steps) == 0) {
+        net.learningRate *= cfg.decay_rate;
+    }
+}
+
+void learnRate_func_exponetial_decay(Context& net)
+{
+    LearningRateFunction::EXPONETIAL_DECAY cfg = net.learnRateFuncConfig.exp_decay;
+
+    if ((net.step % cfg.decay_steps) == 0) {
+        ++cfg.step;
+        net.learningRate *= std::pow(cfg.decay_rate, cfg.step);
+    }
+}
+
+// Optimize functions
+void optimize_func_backprop(Context& net)
+{
+//    const OptimizeFunction::BACKPROP& cfg = net.optFuncConfig.backprop;
     std::vector<State::Layer>& layers = net.layers;
     auto afd = net.activationFunctionDerivate(0);
 
     // Backprop output layer
-    layers.back().gradient = net.error*cfg.learningRate;
+    layers.back().gradient = net.error*net.learningRate;
 
     // Loop backwards
     for (int i = (layers.size() - 2); i >= 0; --i) {

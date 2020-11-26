@@ -1,4 +1,4 @@
-#include <NeuralNet/neuralnet.h>
+﻿#include <NeuralNet/neuralnet.h>
 #include <NeuralNet/functions.h>
 #include <cmath>
 //#include <random>
@@ -57,6 +57,11 @@ Model::Model(const std::vector<size_t>& sizeVec) :
     // Default cost function
     CostFunction::SQUARE_DIFFERENCE sq_diff_cfg;
     setCostFunction(sq_diff_cfg);
+
+
+    // Default learing rate function
+    LearningRateFunction::CONSTANT lr_cfg;
+    setLearningRateFunction(lr_cfg);
 
 
     // Default optimize function
@@ -340,7 +345,7 @@ void Model::printState(Vector input, Vector target, Vector error, size_t batchId
 
 
     // Learning rate
-    ss << "lrt: [ " << std::setprecision(4) << m_config.optFunc.cfg.backprop.learningRate << std::setprecision(2) << " ]\n";
+    ss << "lrt: [ " << std::setprecision(4) << m_state.learningRate << std::setprecision(2) << " ]\n";
 
 
 
@@ -458,6 +463,9 @@ void Model::step()
 {
     // Step
     ++m_state.step;
+
+    // Update learning rate
+    m_config.learnRateFunc.ptr(m_context);
 
     // Propergate
     propergate();
@@ -600,6 +608,37 @@ void Model::setCostFunction(CostFunction::CROSS_ENTROPY cost_func)
     m_config.costFunc.cfg.x_ntrp = cost_func;
     m_config.costFunc.type = Config::CostFuncType::CROSS_ENTROPY;
     m_config.costFunc.ptr = cost_func_cross_entropy;
+}
+
+// Learning rate functions
+void Model::setLearningRateFunction(void (*lr_func)(Context &))
+{
+    m_config.learnRateFunc.type = Config::LearningRateFuncType::CUSTOM;
+    m_config.learnRateFunc.ptr = lr_func;
+}
+
+void Model::setLearningRateFunction(LearningRateFunction::CONSTANT lr_func)
+{
+    m_config.learnRateFunc.cfg.constant = lr_func;
+    m_config.learnRateFunc.type = Config::LearningRateFuncType::CONSTANT;
+    m_config.learnRateFunc.ptr = learnRate_func_constant;
+    m_state.learningRate = lr_func.initial;
+}
+
+void Model::setLearningRateFunction(LearningRateFunction::LINEAR_DECAY lr_func)
+{
+    m_config.learnRateFunc.cfg.linear_decay = lr_func;
+    m_config.learnRateFunc.type = Config::LearningRateFuncType::LINEAR_DECAY;
+    m_config.learnRateFunc.ptr = learnRate_func_linear_decay;
+    m_state.learningRate = lr_func.initial;
+}
+
+void Model::setLearningRateFunction(LearningRateFunction::EXPONETIAL_DECAY lr_func)
+{
+    m_config.learnRateFunc.cfg.exp_decay = lr_func;
+    m_config.learnRateFunc.type = Config::LearningRateFuncType::EXPONETIAL_DECAY;
+    m_config.learnRateFunc.ptr = learnRate_func_exponetial_decay;
+    m_state.learningRate = lr_func.initial;
 }
 
 // Optimize functions

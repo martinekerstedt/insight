@@ -78,6 +78,28 @@ namespace ActivationFunction {
     };
 }
 
+namespace LearningRateFunction {
+    struct CONSTANT
+    {
+        real initial = 0.01;
+    };
+
+    struct LINEAR_DECAY
+    {
+        real initial = 0.1;
+        unsigned decay_steps = 10000;
+        real decay_rate = 0.5;
+    };
+
+    struct EXPONETIAL_DECAY
+    {
+        real initial = 0.01;
+        unsigned decay_steps = 20000;
+        real decay_rate = 0.96;
+        unsigned step = 0;
+    };
+}
+
 namespace OptimizeFunction {
     struct TEST
     {
@@ -86,7 +108,7 @@ namespace OptimizeFunction {
 
     struct BACKPROP
     {
-        real learningRate = 0.01;
+//        real learningRate = 0.01;
         real momentum = 0.0;
     };
 }

@@ -18,18 +18,21 @@ public:
         error(state.error),
         avg_input(state.avg_input),
         avg_error(state.avg_error),
+        step(state.step),
         initFuncType(config.initFunc.type),
         costFuncType(config.costFunc.type),
         optFuncType(config.optFunc.type),
+        learnRateType(config.learnRateFunc.type),
         initFuncConfig(config.initFunc.cfg),
         costFuncConfig(config.costFunc.cfg),
+        learnRateFuncConfig(config.learnRateFunc.cfg),
         optFuncConfig(config.optFunc.cfg),
         sizeVec(config.sizeVec),
         batchSize(config.batchSize),
         printInterval(config.printInterval),
         layers(state.layers),
-        m_config(config),
-        m_state(state)
+        learningRate(state.learningRate),
+        m_config(config)
     {
 
     }
@@ -42,10 +45,14 @@ public:
     const Vector& avg_input;
     const Vector& avg_error;
 
+    // Model step
+    const unsigned& step;
+
     // Currently selected functions, read only
     const Config::InitFuncType& initFuncType;
     const Config::ActivFuncType& activFuncType(unsigned layerIdx) { return m_config.layerActivFunc[layerIdx].type; }
 //    const std::vector<State::ActivFuncType>& activFuncType2 = m_state.layerActivFunc[].type;
+    const Config::LearningRateFuncType& learnRateType;
     const Config::CostFuncType& costFuncType;
     const Config::OptFuncType& optFuncType;
 
@@ -53,6 +60,7 @@ public:
     const Config::InitFuncConfig& initFuncConfig;
     const Config::ActivFuncConfig& activFuncConfig(unsigned layerIdx) { return m_config.layerActivFunc[layerIdx].cfg; }
     const Config::CostFuncConfig& costFuncConfig;
+    const Config::LearningRateFuncConfig& learnRateFuncConfig;
     const Config::OptFuncConfig& optFuncConfig;
 
     // All user definable functions
@@ -100,9 +108,11 @@ public:
     // Layers
     std::vector<State::Layer>& layers;
 
+    // Learning rate
+    real& learningRate;
+
 private:
     Config& m_config;
-    State& m_state;
 
 };
 

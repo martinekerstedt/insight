@@ -91,6 +91,11 @@ public:
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::SIGMOID activ_func);
     void setActivationFunction(unsigned int layerIdx, ActivationFunction::TANH activ_func);
 
+    void setLearningRateFunction(void (*lr_func)(Context&));
+    void setLearningRateFunction(LearningRateFunction::CONSTANT lr_func);
+    void setLearningRateFunction(LearningRateFunction::LINEAR_DECAY lr_func);
+    void setLearningRateFunction(LearningRateFunction::EXPONETIAL_DECAY lr_func);
+
     void setOptimizeFunction(void (*optFunc)(Context&));
     void setOptimizeFunction(OptimizeFunction::TEST opt_func);
     void setOptimizeFunction(OptimizeFunction::BACKPROP opt_func);

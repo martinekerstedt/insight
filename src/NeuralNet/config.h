@@ -44,6 +44,15 @@ struct Config
         SQUARE_DIFFERENCE
     };
 
+    // Built-in learning rate functions
+    enum class LearningRateFuncType
+    {
+        CUSTOM,
+        CONSTANT,
+        LINEAR_DECAY,
+        EXPONETIAL_DECAY
+    };
+
     // Built-in optimization functions
     enum class OptFuncType
     {
@@ -72,6 +81,13 @@ struct Config
         CostFunction::DIFFERENCE diff;
         CostFunction::SQUARE_DIFFERENCE sq_diff;
         CostFunction::CROSS_ENTROPY x_ntrp;
+    };
+
+    struct LearningRateFuncConfig
+    {
+        LearningRateFunction::CONSTANT constant;
+        LearningRateFunction::LINEAR_DECAY linear_decay;
+        LearningRateFunction::EXPONETIAL_DECAY exp_decay;
     };
 
     struct OptFuncConfig
@@ -104,6 +120,13 @@ struct Config
         CostFuncType type;
         real (*ptr)(real, real, Context&);
     } costFunc;
+
+    struct LearningRateFunc
+    {
+        LearningRateFuncConfig cfg;
+        LearningRateFuncType type;
+        void (*ptr)(Context&);
+    } learnRateFunc;
 
     struct OptFunc
     {

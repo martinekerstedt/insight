@@ -54,7 +54,10 @@ struct State
     Vector avg_error;
 
     // Step
-    unsigned long step;
+    unsigned step;
+
+    // Learning rate
+    real learningRate;
 
 };
 
