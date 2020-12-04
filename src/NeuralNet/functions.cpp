@@ -282,6 +282,9 @@ void optimize_func_backprop(Context& net)
 
     layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
             * net.avg_input.trans();
+
+//    layers[0].weights -= (Matrix::apply(layers[0].weightedSum, afd, net) ** layers[0].gradient)
+//            * net.input.trans();
 }
 
 

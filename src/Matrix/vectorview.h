@@ -8,7 +8,7 @@ class Vector;
 class VectorView final : private ExprInterface
 {
 public:
-    VectorView();
+    VectorView(unsigned size);
 
     VectorView(const Matrix* src,
                const real* ptr,
@@ -20,6 +20,9 @@ public:
 
     real operator()(const unsigned row, const unsigned col) const;
     real operator()(const unsigned idx) const;
+
+    VectorView operator==(const Vector* src);
+//    VectorView operator==(const VectorView& src);
 
     unsigned rows() const;
     unsigned cols() const;

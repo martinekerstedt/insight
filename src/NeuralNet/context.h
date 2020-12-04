@@ -21,8 +21,8 @@ public:
         step(state.step),
         initFuncType(config.initFunc.type),
         costFuncType(config.costFunc.type),
-        optFuncType(config.optFunc.type),
         learnRateType(config.learnRateFunc.type),
+        optFuncType(config.optFunc.type),        
         initFuncConfig(config.initFunc.cfg),
         costFuncConfig(config.costFunc.cfg),
         learnRateFuncConfig(config.learnRateFunc.cfg),
@@ -52,8 +52,8 @@ public:
     const Config::InitFuncType& initFuncType;
     const Config::ActivFuncType& activFuncType(unsigned layerIdx) { return m_config.layerActivFunc[layerIdx].type; }
 //    const std::vector<State::ActivFuncType>& activFuncType2 = m_state.layerActivFunc[].type;
-    const Config::LearningRateFuncType& learnRateType;
     const Config::CostFuncType& costFuncType;
+    const Config::LearningRateFuncType& learnRateType;
     const Config::OptFuncType& optFuncType;
 
     // Function configs

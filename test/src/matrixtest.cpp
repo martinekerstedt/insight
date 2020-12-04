@@ -204,7 +204,7 @@ TEST(MatrixAssignment, Vector)
 {
     Vector vec(MAT_1);
 
-    Matrix mat;
+    Matrix mat(MAT_1_ROWS*MAT_1_COLS, 1);
     mat = vec;
 
     EXPECT_TRUE(equal_matricies(mat, vec));
@@ -525,7 +525,7 @@ TEST(MatrixOperators, ElementWiseSubtraction)
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-    Matrix mat3;
+    Matrix mat3(MAT_2_ROWS, MAT_2_COLS);
     mat3 = mat1 - mat2;
 
     for (unsigned i = 0; i < mat1.size(); ++i) {
@@ -538,7 +538,7 @@ TEST(MatrixOperators, ElementWiseMultiplication)
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-    Matrix mat3;
+    Matrix mat3(MAT_2_ROWS, MAT_2_COLS);
     mat3 = Matrix::mulEWise(mat1, mat2);
 
     for (unsigned i = 0; i < mat1.size(); ++i) {
@@ -551,7 +551,7 @@ TEST(MatrixOperators, ElementWiseMultiplicationOperator)
     Matrix mat1(MAT_1_ROWS, MAT_1_COLS, MAT_1);
     Matrix mat2(MAT_2_ROWS, MAT_2_COLS, MAT_2);
 
-    Matrix mat3;
+    Matrix mat3(MAT_2_ROWS, MAT_2_COLS);
     mat3 = mat1 ** mat2;
 
     for (unsigned i = 0; i < mat1.size(); ++i) {

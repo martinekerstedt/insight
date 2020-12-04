@@ -41,12 +41,7 @@ void my_init(NeuralNet::Context& net)
     std::vector<NeuralNet::State::Layer>& layers = net.layers;
     layers[0].bias(2) = 2;
 
-    NeuralNet::State a;
-
-
-    SomeFunction::FuncTwo f1;
-
-
+//    SomeFunction::FuncTwo f1;
 }
 
 

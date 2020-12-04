@@ -23,6 +23,7 @@ Model::Model(const std::initializer_list<size_t>& list) :
 }
 
 Model::Model(const std::vector<size_t>& sizeVec) :
+    m_state(sizeVec),
     m_context(m_config, m_state)
 {
     if (sizeVec.size() < 2) {
@@ -44,45 +45,24 @@ Model::Model(const std::vector<size_t>& sizeVec) :
     m_config.batchSize = 1;
     m_config.printInterval = 1;
 
-
-    // Step
-    m_state.step = 0;
-
-
     // Default initialization function
     InitializationFunction::RANDOM_NORMAL rnd_cfg;
     setInitializationFunction(rnd_cfg);
-
 
     // Default cost function
     CostFunction::SQUARE_DIFFERENCE sq_diff_cfg;
     setCostFunction(sq_diff_cfg);
 
-
     // Default learing rate function
     LearningRateFunction::CONSTANT lr_cfg;
     setLearningRateFunction(lr_cfg);
-
 
     // Default optimize function
     OptimizeFunction::BACKPROP backprop_cfg;
     setOptimizeFunction(backprop_cfg);
 
-
-    // Initialize error vectors
-    m_state.error.resize(sizeVec.back(), 0.0);
-    m_state.avg_error.resize(sizeVec.back(), 0.0);
-
-
-    // Initialize average input
-    m_state.avg_input.resize(sizeVec.front(), 0.0);
-
-
-    // Create network
+    // Default activation functions
     for (size_t i = 0; i < (sizeVec.size() - 1); ++i) {
-
-        // Add layer
-        m_state.layers.push_back(State::Layer(sizeVec[i], sizeVec[i + 1]));
         Config::ActivFunc activFunc;
         activFunc.type = Config::ActivFuncType::SIGMOID;
         activFunc.ptr = activation_func_sigmoid;
@@ -92,8 +72,7 @@ Model::Model(const std::vector<size_t>& sizeVec) :
         m_config.layerActivFunc.push_back(activFunc);
     }
 
-
-    // Init weights and biases
+    // Initialize weights and biases
     m_config.initFunc.ptr(m_context);
 }
 
@@ -116,13 +95,6 @@ void Model::propergate()
 
 const Vector& Model::propergate(const Vector& input)
 {
-    if (input.size() != m_config.sizeVec[0]) {
-        THROW_ERROR("Invalid input size: "
-                    << input.size()
-                    << ", Expected: "
-                    << m_config.sizeVec[0]);
-    }
-
     m_state.input = &input;
 
     propergate();
@@ -130,123 +102,8 @@ const Vector& Model::propergate(const Vector& input)
     return output();
 }
 
-void Model::train(const Matrix& input, const Matrix& target)
-{
-    // Check sizes
-    if (input.rows() != target.rows()) {
-        THROW_ERROR("Input and Target matricies must have equal number of rows.\n"
-                    << input.rows()
-                    << " != "
-                    << target.rows());
-    }
-
-    if (input.cols() != m_config.sizeVec.front()) {
-        THROW_ERROR("Number of cols in input matrix must equal number of input neurons.\n"
-                    << input.cols()
-                    << " != "
-                    << m_config.sizeVec.front());
-    }
-
-    if (target.cols() != m_config.sizeVec.back()) {
-        THROW_ERROR("Number of cols in target matrix must equal number of output neurons.\n"
-                    << input.cols()
-                    << " != "
-                    << m_config.sizeVec.front());
-    }
-
-    // Number of training samples
-    size_t nSamples = input.rows();
-    unsigned nEpochs = 2;
-
-    // Number of epochs
-    for (size_t epoch = 0; epoch < nEpochs; ++epoch) {
-
-
-        // Change print interval at last epoch
-        if (epoch == (nEpochs - 1)) {
-            m_config.printInterval = 500;
-        }
-
-
-        // Loop training set
-        size_t inputIdx = 0;
-        while (inputIdx < nSamples) {
-
-
-            // Training batch
-            size_t batchMax = std::min(inputIdx + m_config.batchSize, nSamples);
-
-            // Reset averages
-            m_state.avg_error.fill(0.0);
-            m_state.avg_input.fill(0.0);
-
-            // Batch
-            for (size_t batchIdx = inputIdx; batchIdx < batchMax; ++batchIdx) {
-
-                // Propergate input vector                
-//                propergate(input.row(batchIdx));
-
-                m_state.input = input.row(batchIdx);
-                propergate();
-
-
-                // Calc error vector, average over batch
-                m_state.error = Matrix::zip(m_state.layers.back().output, target.row(batchIdx), m_config.costFunc.ptr, m_context);
-
-                // Save error to get average
-                // Note: avg_error.size() == output.size() == target.size()
-                m_state.avg_error += m_state.error;
-
-                // Average input
-                m_state.avg_input += input.row(batchIdx);
-
-                // Print
-                if ((batchIdx % m_config.printInterval) == 0) {
-                    printState(input.row(batchIdx), target.row(batchIdx), m_state.error, batchIdx);
-                }
-            }
-
-
-            // Divide to get avgerages
-            size_t nSamples = batchMax - inputIdx;
-            m_state.avg_error /= nSamples;
-            m_state.avg_input /= nSamples;
-
-
-            // Optimize on avg_error
-            m_config.optFunc.ptr(m_context);
-
-
-            // Update index
-            inputIdx += m_config.batchSize;
-        }
-    }
-}
-
 void Model::train(const Matrix& input, const Matrix& target, unsigned nEpochs)
 {
-    // Check sizes
-    if (input.rows() != target.rows()) {
-        THROW_ERROR("Input and Target matricies must have equal number of rows.\n"
-                    << input.rows()
-                    << " != "
-                    << target.rows());
-    }
-
-    if (input.cols() != m_config.sizeVec.front()) {
-        THROW_ERROR("Number of cols in input matrix must equal number of input neurons.\n"
-                    << input.cols()
-                    << " != "
-                    << m_config.sizeVec.front());
-    }
-
-    if (target.cols() != m_config.sizeVec.back()) {
-        THROW_ERROR("Number of cols in target matrix must equal number of output neurons.\n"
-                    << input.cols()
-                    << " != "
-                    << m_config.sizeVec.front());
-    }
-
     // Number of training samples
     size_t nSamples = input.rows();
 
@@ -437,25 +294,11 @@ void Model::printState(Vector input, Vector target, Vector error, size_t batchId
 
 void Model::setInput(const Vector& input)
 {
-    if (input.size() != m_config.sizeVec.front()) {
-        THROW_ERROR("Invalid input size: "
-                    << input.size()
-                    << ", Expected: "
-                    << m_config.sizeVec.front());
-    }
-
     m_state.input = &input;
 }
 
 void Model::setTarget(const Vector& target)
 {
-    if (target.size() != m_config.sizeVec.back()) {
-        THROW_ERROR("Invalid target size: "
-                    << target.size()
-                    << ", Expected: "
-                    << m_config.sizeVec.back());
-    }
-
     m_state.target = &target;
 }
 

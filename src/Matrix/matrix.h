@@ -123,9 +123,23 @@ public:
     template <Expr RHS>
     Matrix operator=(const RHS& rhs)
     {
-        m_rows = rhs.rows();
-        m_cols = rhs.cols();
-        m_vec.resize(m_rows*m_cols);
+        if (m_rows != rhs.rows()) {
+            THROW_ERROR("Matricies must have equal number of rows.\n"
+                        << m_rows
+                        << " != "
+                        << rhs.rows());
+        }
+
+        if (m_cols != rhs.cols()) {
+            THROW_ERROR("Matricies must have equal number of rows.\n"
+                        << m_cols
+                        << " != "
+                        << rhs.cols());
+        }
+
+//        m_rows = rhs.rows();
+//        m_cols = rhs.cols();
+//        m_vec.resize(m_rows*m_cols);
 
         evalExpr(rhs);
 

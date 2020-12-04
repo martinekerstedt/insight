@@ -61,8 +61,8 @@ public:
     void propergate2();
     void propergate();
     const Vector& propergate(const Vector& input);
-    void train(const Matrix& input, const Matrix& target);
-    void train(const Matrix& input, const Matrix& target, unsigned nEpochs);
+//    void train(const Matrix& input, const Matrix& target);
+    void train(const Matrix& input, const Matrix& target, unsigned nEpochs = 1);
 //    void softMax(Vector& vec);
     const Vector& output();
     void save(std::string dir);
